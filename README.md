@@ -33,3 +33,7 @@ Aplicativo mobile para localizar unidades de saúde próximas, com mapa, horári
 - **dotenv / .env**: variáveis de ambiente
 - **Docker**: containers dos serviços e do banco
 - **OpenSSL**: geração de chaves e certificados
+
+### API CNES
+
+- **Documentacao da API**: https://apidadosabertos.saude.gov.br/v1/#/ 
