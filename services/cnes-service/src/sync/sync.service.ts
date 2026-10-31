@@ -267,7 +267,7 @@ async function executarComLock(modoSolicitado: ModoSync, deps: Dependencias): Pr
             })
             .where(eq(syncExecucoes.id, execucaoId));
 
-        log.info(resultado, "sync do CNES concluído");
+        logger.info(resultado, "sync do CNES concluído");
         return resultado;
     } catch (error) {
         const mensagem = error instanceof Error ? error.message : String(error);
