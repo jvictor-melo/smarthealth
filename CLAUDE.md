@@ -1,0 +1,82 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Projeto
+
+SmartHealth é um app mobile (Expo / React Native, sem site) para localizar unidades de saúde em Teresina-PI, com mapa, horários, serviços e rotas. O back-end é um conjunto de microsserviços Node + Express 5 + TypeScript (ESM). A documentação, o código e as mensagens de commit são em português.
+
+## Layout do monorepo
+
+Não existe workspace npm na raiz: cada serviço tem o próprio `package.json` e `node_modules`. Os comandos rodam de dentro da pasta do serviço.
+
+- `app/`: app Expo (ainda vazio).
+- `packages/`: código compartilhado (ainda vazio).
+- `infrastructure/docker-compose.yml`: só o Postgres 17 + PostGIS 3.5 para desenvolvimento (`smarthealth`/`smarthealth`/`smarthealth`). A porta do host é `${POSTGRES_PORT:-5432}`.
+- `services/api-gateway`: proxy com `http-proxy-middleware`, ainda incompleto (`server.ts` vazio, `services` não definido em `gateway.routes.ts`, sem script `dev`). Ainda não roteia `/units` nem `/unit-types` para o cnes-service.
+- `services/user-service`: esqueleto (só `server.ts` com um `console.log`).
+- `services/cnes-service`: o único serviço completo (detalhes abaixo). O `README.md` dele é a referência sobre a API do CNES e as regras de sync; leia antes de mexer no sync.
+
+## Convenções
+
+- Commits pequenos em conventional commits, com escopo do serviço: `feat(cnes-service): ...`, `chore(infra): ...`.
+- Trabalho em branch `feat/...` a partir da `main`; nada é commitado direto na `main`.
+- TypeScript estrito com `exactOptionalPropertyTypes` e `noUncheckedIndexedAccess`, e imports relativos com extensão `.js` (`nodenext`).
+- No Windows, `npm`/`npx` podem falhar no Git Bash ("'node' não é reconhecido"); rode pelo PowerShell.
+
+## cnes-service
+
+Sincroniza as unidades de Teresina (município IBGE `221100`) da API de dados abertos do CNES para o Postgres e expõe rotas de leitura na porta 3002.
+
+### Comandos (em `services/cnes-service`)
+
+```bash
+cp .env.example .env          # ajuste DATABASE_URL se o Postgres não estiver na 5432
+docker compose -f ../../infrastructure/docker-compose.yml up -d
+npm install
+npm run db:migrate            # aplica drizzle/*.sql (inclui CREATE EXTENSION postgis)
+npm run sync:full             # primeira carga: ~36 requisições, ~10 s, ~195 unidades
+npm run dev                   # tsx watch; Swagger em http://localhost:3002/docs
+```
+
+- `npm run sync`: sync incremental (o mesmo que o cron semanal roda).
+- `npm test`: todos os testes (vitest); um arquivo: `npx vitest run test/filters.test.ts`; um caso: `npx vitest run -t "trecho do nome"`.
+- `npx tsc --noEmit`: typecheck. Não há linter configurado.
+- `npm run db:generate`: gera migration a partir de `src/db/schema.ts`. **O drizzle-kit escreve `"geography(Point, 4326)"` entre aspas e o Postgres rejeita; tire as aspas à mão no SQL gerado.**
+
+Os testes nunca chamam a API real: usam respostas reais salvas em `test/fixtures/*.json` e um `fetch` injetado.
+
+### Arquitetura
+
+O fluxo do sync é `cnes/` → `sync/` → `db/`, e o das rotas é `routes/` → `controllers/` → `services/` → `db/`.
+
+- `src/cnes/http.ts`: GET com throttle (pausa mínima entre requisições), timeout, retry com backoff em erro de rede/429/5xx, e `404 → null`. `fetch`, `sleep` e `now` são injetáveis para teste.
+- `src/cnes/client.ts`: paginação e endpoints. Pontos da API que já causaram erro:
+  - a base é `https://apidadosabertos.saude.gov.br`, **sem `/v1`** (o link da documentação no README raiz tem `/v1`, mas as rotas não);
+  - `limit` máximo é 20;
+  - `offset` conta **itens**, não páginas (a documentação oficial está errada);
+  - a resposta não traz total: pare quando uma página vier com menos que `limit`.
+- `src/cnes/normalize.ts`: converte os campos crus (strings vazias, "S/N", CEP, flags SIM/NÃO) e rejeita registros sem nome ou coordenada válida.
+- `src/cnes/filters.ts`: `planejarSync` (função pura) decide o que salvar, o que desativar e o que é inválido.
+- `src/sync/sync.service.ts`: `executarSync(modo)`. Garantias que precisam ser mantidas:
+  - busca tudo na API antes de escrever e grava numa **única transação**: se a API falhar, o banco não muda;
+  - `pg_try_advisory_lock` impede dois syncs simultâneos;
+  - cada execução fica registrada em `sync_execucoes`;
+  - o modo full aborta se o resultado vier vazio ou com menos de 50% das unidades ativas atuais;
+  - unidades **nunca são apagadas**, só recebem `ativo=false`;
+  - o incremental usa `data_atualizacao` = início do último sync com sucesso − 1 dia, e busca status ativo e inativo.
+- `src/sync/columns.ts`: `COLUNAS_SYNC` é a lista de colunas que o upsert sobrescreve. As colunas manuais (`horarios`, `servicos`, `observacoes`, `manual_atualizado_em`) ficam de fora e **o sync nunca pode escrevê-las**. Coluna nova vinda da API entra em `COLUNAS_SYNC`; coluna preenchida à mão não. O teste `sync-columns.test.ts` protege essa separação.
+- `src/sync/scheduler.ts`: node-cron (`SYNC_CRON`, padrão segunda 03:00 em `America/Fortaleza`) com `noOverlap`; desligável por `SYNC_CRON_ENABLED`.
+- `src/config/cnes.config.ts`: **lugar único** das regras de negócio:
+  - `TIPOS_PERMITIDOS` (1, 2, 4, 5, 7, 15, 20, 73; os tipos 22 e 36 ficam de fora de propósito);
+  - `CNES_VERIFICADAS`, as 5 unidades com dados levantados em entrevista. Elas são sempre buscadas individualmente e sempre salvas, mesmo fora dos tipos permitidos.
+- `src/config/env.ts`: variáveis validadas com zod (veja `.env.example`).
+- `src/db/schema.ts`: tabelas `tipos_unidade`, `unidades` (pk `codigo_cnes`, `localizacao geography(Point,4326)` com índice GiST) e `sync_execucoes`. O tipo geography customizado fica em `src/db/geography.ts`.
+- `src/services/units.service.ts`: consultas das rotas. O raio usa `ST_DWithin`, a ordenação usa KNN (`<->`) e a resposta JSON é em snake_case. `detalhes_verificados` só aparece para unidades verificadas.
+- `src/docs/openapi.ts`: spec OpenAPI escrita à mão; atualize junto quando mudar uma rota ou um formato de resposta.
+
+### Limitações conhecidas dos dados
+
+- O bairro vem truncado em 20 caracteres.
+- `turno_atendimento` é texto livre, não um horário estruturado.
+- O Hospital e Maternidade do Satélite (2679639) tem coordenadas imprecisas no CNES e aparece ~5 km longe do endereço real. Corrigir direto no banco não adianta, porque o sync sobrescreve a localização.
