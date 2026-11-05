@@ -16,12 +16,14 @@ Não existe workspace npm na raiz: cada serviço tem o próprio `package.json` e
 - `services/api-gateway`: porta 3000. Repassa só `GET` de `/units`, `/units/:codigo`, `/unit-types` e `/health/cnes` (reescrito para `/health`) ao cnes-service, com 503 `CNES_SERVICE_UNAVAILABLE` quando ele cai. URLs dos serviços em `.env` (`CNES_SERVICE_URL`, `USER_SERVICE_URL`).
 - `services/user-service`: esqueleto (só `server.ts` com um `console.log`).
 - `services/cnes-service`: sync do CNES e rotas de unidades (detalhes abaixo). O `README.md` dele é a referência sobre a API do CNES e as regras de sync; leia antes de mexer no sync.
-- `docs/superpowers/`: design e plano de implementação de cada funcionalidade.
+- `docs/decisoes.md`: registro de todas as decisões e do que está em aberto.
+- `docs/superpowers/`: design (o quê e por quê) e plano (como) de cada funcionalidade.
 
 ## Convenções
 
 - Commits pequenos em conventional commits, com escopo do serviço: `feat(cnes-service): ...`, `chore(infra): ...`.
 - Trabalho em branch `feat/...` a partir da `main`; nada é commitado direto na `main`.
+- **Registre toda decisão de produto ou técnica em `docs/decisoes.md`** (data, decisão, motivo, quem decidiu), no mesmo commit da mudança. A equipe usa esse registro para escrever o documento do projeto para a professora. Decisão que mudou não é apagada: marque como substituída. Pendências vão na seção "Em aberto".
 - TypeScript estrito com `exactOptionalPropertyTypes` e `noUncheckedIndexedAccess`, e imports relativos com extensão `.js` (`nodenext`).
 - No Windows, `npm`/`npx` podem falhar no Git Bash ("'node' não é reconhecido"); rode pelo PowerShell.
 

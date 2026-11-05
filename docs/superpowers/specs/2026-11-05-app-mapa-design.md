@@ -45,3 +45,12 @@ Contexto: projeto de extensão (Ciência da Computação). Pelo cronograma do pr
 ## Deixado para quem implementa
 
 Estrutura de pastas do app, cores dos pinos, layout exato do painel de detalhe, raio padrão e quando refazer a busca.
+
+## Mudanças durante a implementação (2026-11-05)
+
+- **Busca:** cada palavra digitada precisa ser o começo de uma palavra do nome (sem diferenciar acento e maiúscula), e termos como "upa", "posto" e "hospital" filtram por tipo. A regra "o nome contém o texto" trazia todas as UPAs ao buscar "upa renascença". Escolha do Claude.
+- **Distância:** a lista mede e ordena a partir da posição da pessoa, não do centro do mapa, para não mudar de ordem quando o mapa é arrastado. Escolha do Claude.
+- **Tela da unidade:** abre ao tocar num item da lista ou no balão que aparece ao tocar no pino.
+- **Cores dos pinos:** vermelho para urgência (UPA, pronto-socorro), azul para hospital, verde para posto/UBS, cinza para os demais. Escolha do Claude.
+
+O registro de todas as decisões do projeto fica em `docs/decisoes.md`.
