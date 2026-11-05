@@ -8,16 +8,18 @@ Contexto: projeto de extensão (Ciência da Computação). Pelo cronograma do pr
 
 ## Objetivos
 
-- Mapa centrado na posição do usuário (GPS), com pinos das unidades ativas próximas, cor por tipo.
+- **Tela inicial** (de cima para baixo): barra de pesquisa; lista "Lugares próximos" (vira "Resultados" quando há texto na busca) com bolinha da cor do tipo, nome e distância; mapa com os pinos das unidades, cor por tipo, centrado na posição do usuário (GPS).
+- A lista mostra quantos itens couberem conforme a altura da tela (menos em celular pequeno).
 - Busca por nome da unidade e por tipo de atendimento, priorizando a mais próxima.
-- Detalhe da unidade ao tocar no pino: nome, tipo, endereço, telefone, distância e, nas 5 verificadas, horários, serviços e observações.
-- Botão "Como chegar" que abre a rota em app de mapas externo.
+- **Tela da unidade** (aberta ao tocar num item da lista ou num pino, com voltar): nome, tipo, endereço, telefone, distância, mini-mapa do local e, nas 5 verificadas, horários, serviços e observações. Botão "Ir até lá" que abre a rota no app de mapas externo.
+- O app assume que o usuário está em Teresina: toda busca é em Teresina.
 
 ## Fora desta versão
 
 - Busca por sintomas: ideia nova, ainda sem lista de sintomas nem regra de encaminhamento definidas. A barra de busca deve ser construída de forma que uma tabela local de sintomas → tipos de unidade possa ser plugada depois.
 - Login, `expo-secure-store`, área de gestor/profissional, site.
 - Rotas desenhadas dentro do app (exigiriam API paga de direções).
+- Digitar endereço de partida (ponto A) no app: o geocodificador do expo-location exige permissão de localização no Android, justamente o caso de quem negou o GPS. Decidido que o app de mapas externo pede a origem.
 
 ## Restrições
 
@@ -35,9 +37,10 @@ Contexto: projeto de extensão (Ciência da Computação). Pelo cronograma do pr
 ## Decisões
 
 - Projeto em `app/`, criado com `create-expo-app` (template TypeScript + Expo Router); dependências instaladas com `npx expo install`.
-- Ao negar a permissão de localização, o mapa centraliza no centro de Teresina e a distância passa a ser calculada a partir desse ponto.
+- Ao negar a permissão de localização, o mapa centraliza no centro de Teresina; a lista se chama "Unidades em Teresina" e não mostra distância (seria a distância até o centro, e enganaria). Escolha do Claude.
 - Ao arrastar o mapa, nova busca a partir do centro da região visível.
-- "Como chegar" abre Google Maps (Android) / Apple Maps ou Google Maps (iOS) via deep link com as coordenadas da unidade.
+- "Ir até lá" abre Google Maps (Android) / Apple Maps (iOS) via link só com o destino; o app de mapas usa o GPS dele ou pede o endereço de partida.
+- Topo da tela inicial: nome "SmartHealth" pequeno acima da barra de pesquisa (escolha do Claude, a confirmar).
 
 ## Deixado para quem implementa
 
