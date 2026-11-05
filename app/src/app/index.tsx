@@ -35,6 +35,7 @@ export default function TelaInicial() {
         <SafeAreaView style={styles.tela} edges={["top", "left", "right"]}>
             <BarraBusca />
             {!usandoGps && !carregandoGps && <Text style={styles.aviso}>Sem localização: mostrando unidades a partir do centro de Teresina</Text>}
+            {!consulta.data && consulta.isFetching && <Text style={styles.status}>Carregando unidades…</Text>}
             {consulta.data && (
                 <ListaUnidades
                     titulo={titulo}
@@ -68,6 +69,7 @@ export default function TelaInicial() {
 const styles = StyleSheet.create({
     tela: { flex: 1, backgroundColor: "#fff" },
     aviso: { marginHorizontal: 16, marginTop: 8, fontSize: 13, color: "#8a5a00" },
+    status: { marginHorizontal: 16, marginTop: 12, fontSize: 15, color: "#555" },
     moldura: {
         flex: 1,
         margin: 16,
