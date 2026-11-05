@@ -1,56 +1,55 @@
-# Welcome to your Expo app 👋
+# SmartHealth: app
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App Expo (SDK 58, Expo Router) para encontrar unidades de saúde em Teresina-PI.
 
-## Get started
+- **Tela inicial:** barra de busca, lista "Lugares próximos" (ou "Resultados" quando há texto) e mapa com os pinos.
+- **Tela da unidade:** endereço, telefone, horários e serviços (nas unidades verificadas), mini-mapa e botão "Ir até lá", que abre a rota no Google Maps ou no Apple Maps.
 
-1. Install dependencies
+O app assume que a pessoa está em Teresina. Sem permissão de localização, o mapa abre no centro da cidade e a lista não mostra distâncias.
 
-   ```bash
-   npm install
-   ```
+## Como rodar
 
-2. Start the app
+O app só conversa com o api-gateway, que repassa as rotas para o cnes-service. Suba nesta ordem:
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+1. **Postgres:** em `infrastructure/`, `docker compose up -d`.
+2. **cnes-service:** em `services/cnes-service`, `npm run dev` (porta 3002). Na primeira vez, rode antes `npm run db:migrate` e `npm run sync:full`.
+3. **api-gateway:** em `services/api-gateway`, `npm run dev` (porta 3000).
+4. **App:** aqui em `app/`:
 
 ```bash
-npm run reset-project
+cp .env.example .env    # ajuste EXPO_PUBLIC_API_URL
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Abra no celular com o **Expo Go**, lendo o QR code. O celular e o PC precisam estar na mesma rede.
 
-### Other setup steps
+### Endereço da API (`EXPO_PUBLIC_API_URL`)
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+- **Celular físico:** IP do PC na rede, por exemplo `http://192.168.0.10:3000` (veja com `ipconfig` no Windows). `localhost` não funciona, porque no celular ele aponta para o próprio celular.
+- **Emulador Android:** `http://10.0.2.2:3000`.
 
-## Learn more
+Depois de mudar o `.env`, reinicie o `npx expo start`.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Comandos
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm test               # testes (jest-expo)
+npx jest test/busca.test.ts
+npm run typecheck      # tsc --noEmit
+npx expo lint
+npx expo-doctor
+```
 
-## Join the community
+Instale dependências sempre com `npx expo install <pacote>`, que escolhe a versão compatível com o SDK.
 
-Join our community of developers creating universal apps.
+## Estrutura
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- `src/app/`: só as telas (rotas do Expo Router).
+- `src/api/`: cliente HTTP, tipos (espelho do OpenAPI do cnes-service) e hooks do TanStack Query.
+- `src/busca/`: busca local por nome e tipo. Os termos como "upa", "posto" e "hospital" ficam em `sinonimos.ts`, que é onde a futura tabela de sintomas vai entrar.
+- `src/mapa/`, `src/rota/`, `src/localizacao/`: cores dos pinos, distância, link da rota e GPS.
+
+## Gerar o APK (EAS)
+
+O mapa funciona no Expo Go sem configuração. Para gerar o APK pelo EAS, o Android exige uma chave do Google Maps: configure `androidGoogleMapsApiKey` no plugin do `react-native-maps` e use `provider={PROVIDER_GOOGLE}` (veja a doc do `react-native-maps` no site do Expo).

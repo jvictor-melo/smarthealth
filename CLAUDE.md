@@ -10,12 +10,13 @@ SmartHealth é um app mobile (Expo / React Native, sem site) para localizar unid
 
 Não existe workspace npm na raiz: cada serviço tem o próprio `package.json` e `node_modules`. Os comandos rodam de dentro da pasta do serviço.
 
-- `app/`: app Expo (ainda vazio).
+- `app/`: app Expo (detalhes abaixo).
 - `packages/`: código compartilhado (ainda vazio).
 - `infrastructure/docker-compose.yml`: só o Postgres 17 + PostGIS 3.5 para desenvolvimento (`smarthealth`/`smarthealth`/`smarthealth`). A porta do host é `${POSTGRES_PORT:-5432}`.
-- `services/api-gateway`: proxy com `http-proxy-middleware`, ainda incompleto (`server.ts` vazio, `services` não definido em `gateway.routes.ts`, sem script `dev`). Ainda não roteia `/units` nem `/unit-types` para o cnes-service.
+- `services/api-gateway`: porta 3000. Repassa só `GET` de `/units`, `/units/:codigo`, `/unit-types` e `/health/cnes` (reescrito para `/health`) ao cnes-service, com 503 `CNES_SERVICE_UNAVAILABLE` quando ele cai. URLs dos serviços em `.env` (`CNES_SERVICE_URL`, `USER_SERVICE_URL`).
 - `services/user-service`: esqueleto (só `server.ts` com um `console.log`).
-- `services/cnes-service`: o único serviço completo (detalhes abaixo). O `README.md` dele é a referência sobre a API do CNES e as regras de sync; leia antes de mexer no sync.
+- `services/cnes-service`: sync do CNES e rotas de unidades (detalhes abaixo). O `README.md` dele é a referência sobre a API do CNES e as regras de sync; leia antes de mexer no sync.
+- `docs/superpowers/`: design e plano de implementação de cada funcionalidade.
 
 ## Convenções
 
@@ -80,3 +81,22 @@ O fluxo do sync é `cnes/` → `sync/` → `db/`, e o das rotas é `routes/` →
 - O bairro vem truncado em 20 caracteres.
 - `turno_atendimento` é texto livre, não um horário estruturado.
 - O Hospital e Maternidade do Satélite (2679639) tem coordenadas imprecisas no CNES e aparece ~5 km longe do endereço real. Corrigir direto no banco não adianta, porque o sync sobrescreve a localização.
+
+## app
+
+Expo SDK 58 + Expo Router, rotas em `app/src/app/` (só telas; o resto do código fica em `app/src/`). Fala apenas com o api-gateway, pela URL em `EXPO_PUBLIC_API_URL` (celular físico: IP do PC na rede; emulador Android: `http://10.0.2.2:3000`). O `app/README.md` explica como subir tudo.
+
+### Comandos (em `app/`)
+
+- `npx expo start`: abre no Expo Go. Não há como testar as telas fora de um celular ou emulador; o mapa (`react-native-maps`) não roda na web.
+- `npm test` (jest-expo); um arquivo: `npx jest test/busca.test.ts`. `npm run typecheck`, `npx expo lint`, `npx expo-doctor`.
+- `npx expo export --platform android --output-dir <pasta temporária>`: compila o bundle sem celular, útil para pegar erro de import.
+- Dependências sempre com `npx expo install <pacote>`. A API do Expo muda a cada SDK: o `app/AGENTS.md` (do template) manda conferir a doc versionada em `docs.expo.dev/versions/v58.0.0/` antes de usar uma API do Expo.
+- O TypeScript do app é 6.x, em que `types` padrão é vazio: por isso o `tsconfig.json` lista `"types": ["jest"]`.
+
+### Decisões que não são óbvias no código
+
+- O app assume que a pessoa está em Teresina. Sem permissão de GPS, usa o centro da cidade e não mostra distância. Não há campo de endereço de partida: o `expo-location` só geocodifica no Android com permissão de localização, então o "Ir até lá" manda só o destino e o app de mapas pede a origem.
+- A lista ordena e mede distância pela posição da pessoa (`src/mapa/distancia.ts`), não pelo `distancia_m` da API, que é medido a partir do centro do mapa e muda quando ele é arrastado.
+- A busca é local, sobre as até 200 unidades carregadas: cada palavra digitada precisa ser início de uma palavra do nome, e termos de `src/busca/sinonimos.ts` ("upa", "posto", "hospital"...) viram filtro por tipo. Busca por sintomas ainda não existe; quando existir, entra como mais chaves em `sinonimos.ts`.
+- `src/api/types.ts` espelha o OpenAPI do cnes-service; mudou o formato de resposta lá, atualize aqui.
