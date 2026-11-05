@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUnidadesProximas } from "../api/hooks";
@@ -7,7 +7,7 @@ import { filtrarUnidades } from "../busca/filtrar";
 import { BarraBusca } from "../componentes/BarraBusca";
 import { ListaUnidades } from "../componentes/ListaUnidades";
 import { MapaUnidades } from "../componentes/MapaUnidades";
-import type { Coordenada } from "../config";
+import { API_URL, type Coordenada } from "../config";
 import { useBusca } from "../estado/busca";
 import { useLocalizacao } from "../localizacao/useLocalizacao";
 import { distanciaM } from "../mapa/distancia";
@@ -27,6 +27,11 @@ export default function TelaInicial() {
         if (!usandoGps) return encontradas;
         return [...encontradas].sort((a, b) => distanciaM(posicao, a.localizacao) - distanciaM(posicao, b.localizacao));
     }, [consulta.data, termo, usandoGps, posicao]);
+
+    useEffect(() => {
+        // Aparece no terminal do Expo: ajuda a saber se o celular não alcança o gateway ou se a API respondeu erro
+        if (consulta.error) console.warn(`[unidades] ${consulta.error.message} (API_URL=${API_URL})`);
+    }, [consulta.error]);
 
     const titulo = termo.trim() ? "Resultados" : usandoGps ? "Lugares próximos" : "Unidades em Teresina";
     const abrirUnidade = (codigo: number) => router.push(`/unidade/${codigo}`);

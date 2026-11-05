@@ -56,6 +56,7 @@ Decisões de produto e de técnica tomadas ao longo do desenvolvimento, com o mo
 | 2026-11-05 | Cores dos pinos: vermelho para urgência (UPA, pronto-socorro), azul para hospital, verde para posto/UBS, cinza para o resto | Leitura rápida do tipo de atendimento | Claude |
 | 2026-11-06 | Cada chamada à API desiste depois de 10 s, e o app tenta de novo só uma vez antes de mostrar o erro | No primeiro teste no celular, com o banco fora do ar, o app ficou carregando sem fim e sem aviso | Claude |
 | 2026-11-06 | Enquanto as unidades não chegam, a tela mostra "Carregando unidades…" no lugar da lista | A lista simplesmente sumia e parecia que o app não sugeria nada | Claude |
+| 2026-11-06 | O mapa esconde os pontos de interesse do Google (restaurantes, lojas, escolas) | No teste no celular eles se misturavam com as unidades de saúde | Equipe |
 | 2026-11-05 | No topo da tela inicial aparece o nome "SmartHealth" pequeno | O desenho tinha algo no topo; a equipe ainda não confirmou o que era | Claude (a confirmar) |
 
 ## Processo
