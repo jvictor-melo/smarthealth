@@ -57,6 +57,7 @@ Decisões de produto e de técnica tomadas ao longo do desenvolvimento, com o mo
 | 2026-11-06 | Cada chamada à API desiste depois de 10 s, e o app tenta de novo só uma vez antes de mostrar o erro | No primeiro teste no celular, com o banco fora do ar, o app ficou carregando sem fim e sem aviso | Claude |
 | 2026-11-06 | Enquanto as unidades não chegam, a tela mostra "Carregando unidades…" no lugar da lista | A lista simplesmente sumia e parecia que o app não sugeria nada | Claude |
 | 2026-11-06 | O mapa esconde os pontos de interesse do Google (restaurantes, lojas, escolas) | No teste no celular eles se misturavam com as unidades de saúde | Equipe |
+| 2026-11-06 | Novo visual: fonte Atkinson Hyperlegible, azul-petróleo como cor da marca, tema sempre claro, pinos redondos com legenda de cores, distância em destaque na lista, nomes do CNES convertidos de MAIÚSCULAS para leitura normal, telefone e CEP formatados, atalhos "UPA", "Hospital" e "Posto" abaixo da busca, selo nas unidades verificadas | O público inclui idosos e pessoas com baixa visão: a fonte foi feita para leitura fácil, e cor nunca aparece sozinha sem texto | Claude (aprovado) |
 | 2026-11-05 | No topo da tela inicial aparece o nome "SmartHealth" pequeno | O desenho tinha algo no topo; a equipe ainda não confirmou o que era | Claude (a confirmar) |
 
 ## Processo

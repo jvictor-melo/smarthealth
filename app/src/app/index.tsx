@@ -1,17 +1,25 @@
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUnidadesProximas } from "../api/hooks";
 import { filtrarUnidades } from "../busca/filtrar";
 import { BarraBusca } from "../componentes/BarraBusca";
 import { ListaUnidades } from "../componentes/ListaUnidades";
 import { MapaUnidades } from "../componentes/MapaUnidades";
+import { Texto } from "../componentes/Texto";
 import { API_URL, type Coordenada } from "../config";
 import { useBusca } from "../estado/busca";
 import { useLocalizacao } from "../localizacao/useLocalizacao";
 import { distanciaM } from "../mapa/distancia";
 import { itensVisiveis } from "../mapa/itensVisiveis";
+import { cor, espaco } from "../tema";
+
+const LEGENDA = [
+    { cor: cor.urgencia, nome: "Urgência" },
+    { cor: cor.hospital, nome: "Hospital" },
+    { cor: cor.basica, nome: "Posto / UBS" },
+];
 
 export default function TelaInicial() {
     const { posicao, usandoGps, carregando: carregandoGps } = useLocalizacao();
@@ -39,8 +47,16 @@ export default function TelaInicial() {
     return (
         <SafeAreaView style={styles.tela} edges={["top", "left", "right"]}>
             <BarraBusca />
-            {!usandoGps && !carregandoGps && <Text style={styles.aviso}>Sem localização: mostrando unidades a partir do centro de Teresina</Text>}
-            {!consulta.data && consulta.isFetching && <Text style={styles.status}>Carregando unidades…</Text>}
+            {!usandoGps && !carregandoGps && (
+                <Texto variante="legenda" style={styles.aviso}>
+                    Sem acesso à sua localização. Mostrando unidades a partir do centro de Teresina.
+                </Texto>
+            )}
+            {!consulta.data && consulta.isFetching && (
+                <Texto suave style={styles.status}>
+                    Procurando unidades perto de você…
+                </Texto>
+            )}
             {consulta.data && (
                 <ListaUnidades
                     titulo={titulo}
@@ -53,51 +69,73 @@ export default function TelaInicial() {
 
             <View style={styles.moldura}>
                 {carregandoGps ? (
-                    <ActivityIndicator style={styles.centro} size="large" />
+                    <ActivityIndicator style={styles.centro} size="large" color={cor.marca} />
                 ) : (
                     <MapaUnidades posicaoInicial={posicao} unidades={filtradas} onSelecionar={abrirUnidade} onCentroMudou={setCentroMapa} />
                 )}
-                {consulta.isFetching && !carregandoGps && <ActivityIndicator style={styles.carregando} />}
+                {consulta.isFetching && !carregandoGps && <ActivityIndicator style={styles.carregando} color={cor.marca} />}
                 {consulta.isError && (
                     <View style={styles.erro}>
-                        <Text style={styles.erroTexto}>Não foi possível carregar as unidades</Text>
-                        <Pressable onPress={() => consulta.refetch()} accessibilityRole="button">
-                            <Text style={styles.erroBotao}>Tentar de novo</Text>
+                        <Texto style={styles.erroTexto}>Sem conexão com o servidor do SmartHealth. Confira a internet e tente de novo.</Texto>
+                        <Pressable onPress={() => consulta.refetch()} accessibilityRole="button" hitSlop={8}>
+                            <Texto negrito style={styles.erroTexto}>
+                                Tentar de novo
+                            </Texto>
                         </Pressable>
                     </View>
                 )}
+                <View style={styles.legenda} pointerEvents="none">
+                    {LEGENDA.map((l) => (
+                        <View key={l.nome} style={styles.legendaItem}>
+                            <View style={[styles.legendaPonto, { backgroundColor: l.cor }]} />
+                            <Texto variante="legenda">{l.nome}</Texto>
+                        </View>
+                    ))}
+                </View>
             </View>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    tela: { flex: 1, backgroundColor: "#fff" },
-    aviso: { marginHorizontal: 16, marginTop: 8, fontSize: 13, color: "#8a5a00" },
-    status: { marginHorizontal: 16, marginTop: 12, fontSize: 15, color: "#555" },
+    tela: { flex: 1, backgroundColor: cor.papel },
+    aviso: { marginHorizontal: espaco.l, marginTop: espaco.m, color: cor.tintaSuave },
+    status: { marginHorizontal: espaco.l, marginTop: espaco.l },
     moldura: {
         flex: 1,
-        margin: 16,
-        borderWidth: 2,
-        borderColor: "#222",
-        borderRadius: 20,
+        marginHorizontal: espaco.l,
+        marginTop: espaco.m,
+        marginBottom: espaco.l,
+        borderRadius: 24,
+        borderWidth: 1,
+        borderColor: cor.linha,
         overflow: "hidden",
+        backgroundColor: cor.superficie,
     },
     centro: { flex: 1 },
-    carregando: { position: "absolute", top: 12, right: 12 },
+    carregando: { position: "absolute", top: espaco.m, alignSelf: "center" },
     erro: {
         position: "absolute",
-        left: 12,
-        right: 12,
-        top: 12,
-        padding: 12,
-        borderRadius: 12,
-        backgroundColor: "#fdecea",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 8,
+        left: espaco.m,
+        right: espaco.m,
+        top: espaco.m,
+        padding: espaco.m,
+        gap: espaco.s,
+        borderRadius: 16,
+        backgroundColor: cor.erroFundo,
     },
-    erroTexto: { flex: 1, color: "#8b1a1a" },
-    erroBotao: { color: "#8b1a1a", fontWeight: "700" },
+    erroTexto: { color: cor.erroTexto },
+    legenda: {
+        position: "absolute",
+        left: espaco.m,
+        bottom: espaco.m,
+        flexDirection: "row",
+        gap: espaco.m,
+        paddingHorizontal: espaco.m,
+        paddingVertical: espaco.s,
+        borderRadius: 14,
+        backgroundColor: "rgba(255,255,255,0.94)",
+    },
+    legendaItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+    legendaPonto: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: cor.papel },
 });

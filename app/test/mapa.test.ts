@@ -3,12 +3,14 @@ import { corDoTipo } from "../src/mapa/cores";
 import { distanciaM, formatarDistancia } from "../src/mapa/distancia";
 import { itensVisiveis } from "../src/mapa/itensVisiveis";
 import { urlRota } from "../src/rota/abrirRota";
+import { cor } from "../src/tema";
 
 test("cor por tipo de unidade", () => {
-    expect(corDoTipo(73)).toBe("#d32f2f");
-    expect(corDoTipo(5)).toBe("#1565c0");
-    expect(corDoTipo(2)).toBe("#2e7d32");
-    expect(corDoTipo(999)).toBe("#6d6d6d");
+    expect(corDoTipo(73)).toBe(cor.urgencia);
+    expect(corDoTipo(20)).toBe(cor.urgencia);
+    expect(corDoTipo(5)).toBe(cor.hospital);
+    expect(corDoTipo(2)).toBe(cor.basica);
+    expect(corDoTipo(999)).toBe(cor.outros);
 });
 
 test("centro arredondado em 3 casas", () => {
