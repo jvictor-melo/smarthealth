@@ -1,13 +1,10 @@
+
 import { Router } from "express";
-import { createProxyMiddleware } from "http-proxy-middleware";
-// aqui import do user-services 
+
+import cnesRoutes from "./cnes.routes.js";
 
 const router = Router();
 
-router.use(
-    "/users",
-    createProxyMiddleware({
-        target: services.users,
-        changeOrigin: true,
-    }),
-);
+router.use(cnesRoutes);
+
+export default router;
