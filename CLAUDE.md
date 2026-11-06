@@ -12,6 +12,7 @@ Não existe workspace npm: cada serviço tem o próprio `package.json` e `node_m
 
 - `npm run setup`: `npm install` em todas as pastas.
 - `npm run dev` (`scripts/dev.mjs`): sobe o Postgres (`docker compose up -d --wait`), cnes-service e api-gateway via `concurrently` (logs com prefixo `[cnes]`/`[gateway]`) e o Expo **fora** do `concurrently`, porque dentro dele o Expo não recebe o terminal e perde o QR code e os atalhos.
+- `npm run dev:prod`: igual ao `dev`, com o Expo em modo de produção (`--no-dev --minify`), para medir velocidade como no APK.
 - `npm run dev:api`: só banco e back-end.
 
 Os comandos de cada pasta continuam valendo.
@@ -105,6 +106,9 @@ Expo SDK 58 + Expo Router, rotas em `app/src/app/` (só telas; o resto do códig
 ### Decisões que não são óbvias no código
 
 - O app assume que a pessoa está em Teresina. Sem permissão de GPS, usa o centro da cidade e não mostra distância. Não há campo de endereço de partida: o `expo-location` só geocodifica no Android com permissão de localização, então o "Ir até lá" manda só o destino e o app de mapas pede a origem.
-- A lista ordena e mede distância pela posição da pessoa (`src/mapa/distancia.ts`), não pelo `distancia_m` da API, que é medido a partir do centro do mapa e muda quando ele é arrastado.
-- A busca é local, sobre as até 200 unidades carregadas: cada palavra digitada precisa ser início de uma palavra do nome, e termos de `src/busca/sinonimos.ts` ("upa", "posto", "hospital"...) viram filtro por tipo. Busca por sintomas ainda não existe; quando existir, entra como mais chaves em `sinonimos.ts`.
+- O app baixa Teresina inteira numa chamada só (`useUnidadesTeresina`: centro da cidade, `raio_m` 50000, `limit` 200, os máximos da API) e não busca de novo ao arrastar o mapa. Hoje vêm 194 de 195 (a que falta é a CNES 47872, com coordenada fora da cidade). Se a base passar de 200, isso precisa mudar no back-end.
+- A lista ordena e mede distância pela posição da pessoa (`src/mapa/distancia.ts`), não pelo `distancia_m` da API, que é medido a partir do centro de Teresina.
+- O mapa não espera o GPS: `useLocalizacao` entrega centro → última posição guardada → GPS, e o `MapaUnidades` desliza (`animateToRegion`) a cada melhora.
+- As respostas da API ficam guardadas no celular por 7 dias (`PersistQueryClientProvider` + AsyncStorage, em `_layout.tsx`). Mudou o formato da resposta da API? Troque o `buster` lá, senão o app usa o cache no formato antigo.
+- A busca é local, sobre as unidades carregadas: cada palavra digitada precisa ser início de uma palavra do nome, e termos de `src/busca/sinonimos.ts` ("upa", "posto", "hospital"...) viram filtro por tipo. Busca por sintomas ainda não existe; quando existir, entra como mais chaves em `sinonimos.ts`.
 - `src/api/types.ts` espelha o OpenAPI do cnes-service; mudou o formato de resposta lá, atualize aqui.

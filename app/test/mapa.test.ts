@@ -1,4 +1,3 @@
-import { arredondarCentro } from "../src/mapa/centro";
 import { corDoTipo } from "../src/mapa/cores";
 import { distanciaM, formatarDistancia } from "../src/mapa/distancia";
 import { itensVisiveis } from "../src/mapa/itensVisiveis";
@@ -11,10 +10,6 @@ test("cor por tipo de unidade", () => {
     expect(corDoTipo(5)).toBe(cor.hospital);
     expect(corDoTipo(2)).toBe(cor.basica);
     expect(corDoTipo(999)).toBe(cor.outros);
-});
-
-test("centro arredondado em 3 casas", () => {
-    expect(arredondarCentro({ lat: -5.08923, lng: -42.80187 })).toEqual({ lat: -5.089, lng: -42.802 });
 });
 
 test("itens da lista conforme a altura da tela", () => {

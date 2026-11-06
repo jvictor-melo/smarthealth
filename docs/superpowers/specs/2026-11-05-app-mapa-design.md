@@ -54,3 +54,11 @@ Estrutura de pastas do app, cores dos pinos, layout exato do painel de detalhe, 
 - **Cores dos pinos:** vermelho para urgência (UPA, pronto-socorro), azul para hospital, verde para posto/UBS, cinza para os demais. Escolha do Claude.
 
 O registro de todas as decisões do projeto fica em `docs/decisoes.md`.
+
+## Otimização do carregamento (2026-11-06)
+
+- O mapa abre na hora (última posição guardada ou centro de Teresina) e desliza até o GPS.
+- **Substitui** a decisão "ao arrastar o mapa, nova busca a partir do centro da região visível": agora o app baixa Teresina inteira uma vez e não busca ao arrastar.
+- As unidades ficam guardadas no celular por 7 dias.
+- Medição de antes, no modo de produção: mapa ~2,4 s; mapa e pinos ~5,3 s em média (uma primeira abertura levou ~21 s).
+- Medição de depois, no mesmo modo: ~2,6 s na primeira abertura e ~2,2 s nas seguintes (com as unidades guardadas no celular).

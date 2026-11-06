@@ -58,6 +58,9 @@ Decisões de produto e de técnica tomadas ao longo do desenvolvimento, com o mo
 | 2026-11-06 | Enquanto as unidades não chegam, a tela mostra "Carregando unidades…" no lugar da lista | A lista simplesmente sumia e parecia que o app não sugeria nada | Claude |
 | 2026-11-06 | O mapa esconde os pontos de interesse do Google (restaurantes, lojas, escolas) | No teste no celular eles se misturavam com as unidades de saúde | Equipe |
 | 2026-11-06 | Novo visual: fonte Atkinson Hyperlegible, azul-petróleo como cor da marca, tema sempre claro, pinos redondos com legenda de cores, distância em destaque na lista, nomes do CNES convertidos de MAIÚSCULAS para leitura normal, telefone e CEP formatados, atalhos "UPA", "Hospital" e "Posto" abaixo da busca, selo nas unidades verificadas | O público inclui idosos e pessoas com baixa visão: a fonte foi feita para leitura fácil, e cor nunca aparece sozinha sem texto | Claude (aprovado) |
+| 2026-11-06 | O mapa abre na hora, na última posição que o celular guardou (ou no centro de Teresina), e desliza até o GPS quando ele responde | Medido no modo de produção: antes, o mapa levava ~2,4 s esperando o GPS, e tudo (mapa e pinos) ~5,3 s em média; depois das otimizações (A, B e E), ~2,6 s na primeira abertura e ~2,2 s nas seguintes | Equipe |
+| 2026-11-06 | O app baixa todas as unidades de Teresina numa chamada só (~195, ~110 KB) e não busca de novo ao arrastar o mapa. **Substitui** a decisão de buscar de novo a partir do centro do mapa ao arrastar | Pinos aparecem sem depender do GPS e arrastar o mapa não carrega nada. Limite: a API entrega até 200 por chamada; se a base crescer (ex.: tipos 22 e 36), precisa mudar | Equipe |
+| 2026-11-06 | As unidades ficam guardadas no celular por até 7 dias: da segunda abertura em diante os pinos aparecem na hora e o app atualiza por trás. Se a atualização falhar e houver unidades guardadas, o app mostra as guardadas sem aviso de erro | Os dados só mudam no sync semanal do CNES | Equipe (o "sem aviso" é escolha do Claude) |
 | 2026-11-05 | No topo da tela inicial aparece o nome "SmartHealth" pequeno | O desenho tinha algo no topo; a equipe ainda não confirmou o que era | Claude (a confirmar) |
 
 ## Processo
@@ -69,6 +72,7 @@ Decisões de produto e de técnica tomadas ao longo do desenvolvimento, com o mo
 | 2026-11-05 | Cada funcionalidade tem um design (o quê e por quê) e um plano (como) em `docs/superpowers/` | Registro para a equipe e para o documento final | Claude (aprovado) |
 | 2026-11-05 | Teste no celular pelo Expo Go na mesma rede do PC; acesso por qualquer rede exige túnel público, que precisa ser aberto por alguém da equipe | Abrir túnel expõe o gateway na internet | Equipe |
 | 2026-11-06 | Comando único `npm run dev` na raiz (Postgres, cnes-service, gateway e Expo num terminal só), com `npm run setup` para instalar tudo; os comandos de cada pasta continuam valendo | Antes eram 4 terminais e 4 comandos para testar o app | Equipe |
+| 2026-11-06 | `npm run dev:prod`: o mesmo comando único, com o Expo em modo de produção (`--no-dev --minify`) | Medir a velocidade como no APK, antes e depois das otimizações | Equipe |
 
 ## Em aberto
 

@@ -1,5 +1,6 @@
-import MapView, { Marker } from "react-native-maps";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import MapView, { Marker } from "react-native-maps";
 import type { Unidade } from "../api/types";
 import type { Coordenada } from "../config";
 import { corDoTipo } from "../mapa/cores";
@@ -12,22 +13,34 @@ const SEM_PONTOS_DE_INTERESSE = [
     { featureType: "transit", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
 ];
 
+const ZOOM = { latitudeDelta: 0.05, longitudeDelta: 0.05 };
+
 interface Props {
-    posicaoInicial: Coordenada;
+    /** Muda conforme a localização melhora (centro → última posição → GPS); o mapa desliza até ela */
+    posicao: Coordenada;
     unidades: Unidade[];
     onSelecionar: (codigoCnes: number) => void;
-    onCentroMudou: (centro: Coordenada) => void;
 }
 
-export function MapaUnidades({ posicaoInicial, unidades, onSelecionar, onCentroMudou }: Props) {
+export function MapaUnidades({ posicao, unidades, onSelecionar }: Props) {
+    const mapa = useRef<MapView>(null);
+    // Só a primeira posição vira a região inicial; as seguintes chegam pelo animateToRegion
+    const [posicaoInicial] = useState(posicao);
+
+    // O mapa abre na hora com o que já se sabe; quando a posição melhora, ele desliza até lá
+    useEffect(() => {
+        if (posicao === posicaoInicial) return;
+        mapa.current?.animateToRegion({ latitude: posicao.lat, longitude: posicao.lng, ...ZOOM }, 600);
+    }, [posicao, posicaoInicial]);
+
     return (
         <MapView
+            ref={mapa}
             style={styles.mapa}
             initialRegion={{
                 latitude: posicaoInicial.lat,
                 longitude: posicaoInicial.lng,
-                latitudeDelta: 0.05,
-                longitudeDelta: 0.05,
+                ...ZOOM,
             }}
             customMapStyle={SEM_PONTOS_DE_INTERESSE}
             showsPointsOfInterests={false}
@@ -36,7 +49,6 @@ export function MapaUnidades({ posicaoInicial, unidades, onSelecionar, onCentroM
             showsUserLocation
             showsMyLocationButton
             toolbarEnabled={false}
-            onRegionChangeComplete={(r) => onCentroMudou({ lat: r.latitude, lng: r.longitude })}
         >
             {unidades.map((u) => (
                 <Marker

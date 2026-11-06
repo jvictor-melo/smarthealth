@@ -1,14 +1,14 @@
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUnidadesProximas } from "../api/hooks";
+import { useUnidadesTeresina } from "../api/hooks";
 import { filtrarUnidades } from "../busca/filtrar";
 import { BarraBusca } from "../componentes/BarraBusca";
 import { ListaUnidades } from "../componentes/ListaUnidades";
 import { MapaUnidades } from "../componentes/MapaUnidades";
 import { Texto } from "../componentes/Texto";
-import { API_URL, type Coordenada } from "../config";
+import { API_URL } from "../config";
 import { useBusca } from "../estado/busca";
 import { useLocalizacao } from "../localizacao/useLocalizacao";
 import { distanciaM } from "../mapa/distancia";
@@ -23,11 +23,11 @@ const LEGENDA = [
 
 export default function TelaInicial() {
     const { posicao, usandoGps, carregando: carregandoGps } = useLocalizacao();
-    const [centroMapa, setCentroMapa] = useState<Coordenada | null>(null);
     const termo = useBusca((s) => s.termo);
     const { height } = useWindowDimensions();
 
-    const consulta = useUnidadesProximas(centroMapa ?? posicao, !carregandoGps);
+    // Não espera o GPS: as unidades são as mesmas para qualquer ponto de Teresina
+    const consulta = useUnidadesTeresina();
 
     const filtradas = useMemo(() => {
         const encontradas = filtrarUnidades(consulta.data?.unidades ?? [], termo);
@@ -41,7 +41,8 @@ export default function TelaInicial() {
         if (consulta.error) console.warn(`[unidades] ${consulta.error.message} (API_URL=${API_URL})`);
     }, [consulta.error]);
 
-    const titulo = termo.trim() ? "Resultados" : usandoGps ? "Lugares próximos" : "Unidades em Teresina";
+    // Enquanto a permissão é decidida, já trata como "próximos" para o título não piscar
+    const titulo = termo.trim() ? "Resultados" : usandoGps || carregandoGps ? "Lugares próximos" : "Unidades em Teresina";
     const abrirUnidade = (codigo: number) => router.push(`/unidade/${codigo}`);
 
     return (
@@ -68,13 +69,11 @@ export default function TelaInicial() {
             )}
 
             <View style={styles.moldura}>
-                {carregandoGps ? (
-                    <ActivityIndicator style={styles.centro} size="large" color={cor.marca} />
-                ) : (
-                    <MapaUnidades posicaoInicial={posicao} unidades={filtradas} onSelecionar={abrirUnidade} onCentroMudou={setCentroMapa} />
-                )}
-                {consulta.isFetching && !carregandoGps && <ActivityIndicator style={styles.carregando} color={cor.marca} />}
-                {consulta.isError && (
+                {/* O mapa abre na hora, sem esperar o GPS; quando a posição chega, ele desliza até ela */}
+                <MapaUnidades posicao={posicao} unidades={filtradas} onSelecionar={abrirUnidade} />
+                {consulta.isFetching && !consulta.data && <ActivityIndicator style={styles.carregando} color={cor.marca} />}
+                {/* Com unidades guardadas no celular, uma falha ao atualizar não atrapalha: o aviso só aparece sem nada para mostrar */}
+                {consulta.isError && !consulta.data && (
                     <View style={styles.erro}>
                         <Texto style={styles.erroTexto}>Sem conexão com o servidor do SmartHealth. Confira a internet e tente de novo.</Texto>
                         <Pressable onPress={() => consulta.refetch()} accessibilityRole="button" hitSlop={8}>
@@ -112,7 +111,6 @@ const styles = StyleSheet.create({
         overflow: "hidden",
         backgroundColor: cor.superficie,
     },
-    centro: { flex: 1 },
     carregando: { position: "absolute", top: espaco.m, alignSelf: "center" },
     erro: {
         position: "absolute",
