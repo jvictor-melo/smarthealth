@@ -36,7 +36,8 @@ Aplicativo mobile para localizar unidades de saúde próximas, com mapa, horári
 
 ### API CNES
 
-- **Documentacao da API**: https://apidadosabertos.saude.gov.br/v1/#/ 
+- **Documentacao da API**: https://apidadosabertos.saude.gov.br/v1/#/
+
 ## Como rodar tudo
 
 Na raiz do projeto, com o Docker aberto:
@@ -46,7 +47,7 @@ npm run setup   # primeira vez ou depois de um git pull: instala as dependência
 npm run dev     # sobe o Postgres, o cnes-service, o api-gateway e o Expo (com o QR code) num terminal só
 ```
 
+- `npm run dev:prod`: o mesmo, com o app rodando como no APK (modo de produção), para medir velocidade.
 - `npm run dev:api`: só o banco e o back-end, para rodar o `npx expo start` em outro terminal.
-- Os comandos de cada pasta continuam funcionando separados, se preferir 4 terminais.
 - Primeira vez: veja o `services/cnes-service/README.md` (migrations e `sync:full`) e o `app/README.md` (`.env` com o IP do PC).
-- Se a porta 5432 do seu PC estiver ocupada, crie `infrastructure/.env` com `POSTGRES_PORT=5434` e use a mesma porta no `DATABASE_URL` do `services/cnes-service/.env`.
+- Caso o app mostre “Sem conexão com o servidor” e o cnes-service não conecta no banco, provavelmente a porta 5432 do seu PC já está em uso por outro Postgres. Crie infrastructure/.env com POSTGRES_PORT=5434 e troque a porta para 5434 no DATABASE_URL do services/cnes-service/.env.

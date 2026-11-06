@@ -6,6 +6,7 @@
     "setup": "npm install && npm --prefix services/cnes-service install && npm --prefix services/api-gateway install && npm --prefix app install",
     "db": "docker compose -f infrastructure/docker-compose.yml up -d --wait",
     "dev": "node scripts/dev.mjs",
+    "dev:prod": "node scripts/dev.mjs --prod",
     "dev:api": "npm run db && npm run dev:api:servicos",
     "dev:api:servicos": "concurrently --names cnes,gateway --prefix-colors blue,magenta \"npm --prefix services/cnes-service run dev\" \"npm --prefix services/api-gateway run dev\""
   },
