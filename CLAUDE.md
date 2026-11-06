@@ -8,7 +8,13 @@ SmartHealth é um app mobile (Expo / React Native, sem site) para localizar unid
 
 ## Layout do monorepo
 
-Não existe workspace npm na raiz: cada serviço tem o próprio `package.json` e `node_modules`. Os comandos rodam de dentro da pasta do serviço.
+Não existe workspace npm: cada serviço tem o próprio `package.json` e `node_modules`. O `package.json` da raiz só tem atalhos:
+
+- `npm run setup`: `npm install` em todas as pastas.
+- `npm run dev` (`scripts/dev.mjs`): sobe o Postgres (`docker compose up -d --wait`), cnes-service e api-gateway via `concurrently` (logs com prefixo `[cnes]`/`[gateway]`) e o Expo **fora** do `concurrently`, porque dentro dele o Expo não recebe o terminal e perde o QR code e os atalhos.
+- `npm run dev:api`: só banco e back-end.
+
+Os comandos de cada pasta continuam valendo.
 
 - `app/`: app Expo (detalhes abaixo).
 - `packages/`: código compartilhado (ainda vazio).

@@ -68,6 +68,7 @@ Decisões de produto e de técnica tomadas ao longo do desenvolvimento, com o mo
 | 2026-11-05 | O app só começou depois que o cnes-service foi mesclado na `main` | Evitar dois merges e conflito com o trabalho do gateway | Equipe |
 | 2026-11-05 | Cada funcionalidade tem um design (o quê e por quê) e um plano (como) em `docs/superpowers/` | Registro para a equipe e para o documento final | Claude (aprovado) |
 | 2026-11-05 | Teste no celular pelo Expo Go na mesma rede do PC; acesso por qualquer rede exige túnel público, que precisa ser aberto por alguém da equipe | Abrir túnel expõe o gateway na internet | Equipe |
+| 2026-11-06 | Comando único `npm run dev` na raiz (Postgres, cnes-service, gateway e Expo num terminal só), com `npm run setup` para instalar tudo; os comandos de cada pasta continuam valendo | Antes eram 4 terminais e 4 comandos para testar o app | Equipe |
 
 ## Em aberto
 
