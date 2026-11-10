@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUnidadesTeresina } from "../api/hooks";
@@ -37,6 +37,9 @@ export default function TelaInicial() {
         return [...encontradas].sort((a, b) => distanciaM(posicao, a.localizacao) - distanciaM(posicao, b.localizacao));
     }, [consulta.data, termo, filtros, usandoGps, posicao]);
     const comFiltros = contarFiltros(filtros) > 0;
+    // Botões, lista e contagem respondem na hora; o mapa (a parte pesada) atualiza logo em seguida,
+    // para o toque num filtro ou atalho nunca engasgar
+    const unidadesNoMapa = useDeferredValue(filtradas);
 
     useEffect(() => {
         // Aparece no terminal do Expo: ajuda a saber se o celular não alcança o gateway ou se a API respondeu erro
@@ -78,7 +81,7 @@ export default function TelaInicial() {
 
             <View style={styles.moldura}>
                 {/* O mapa abre na hora, sem esperar o GPS; quando a posição chega, ele desliza até ela */}
-                <MapaUnidades posicao={posicao} unidades={filtradas} onSelecionar={abrirUnidade} />
+                <MapaUnidades posicao={posicao} unidades={unidadesNoMapa} onSelecionar={abrirUnidade} />
                 {consulta.isFetching && !consulta.data && <ActivityIndicator style={styles.carregando} color={cor.marca} />}
                 {/* Com unidades guardadas no celular, uma falha ao atualizar não atrapalha: o aviso só aparece sem nada para mostrar */}
                 {consulta.isError && !consulta.data && (
@@ -147,5 +150,6 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(255,255,255,0.94)",
     },
     legendaItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-    legendaPonto: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: cor.papel },
+    // 16 px: com 12 a cor ficava pequena demais; maior que isso tampa mais o mapa
+    legendaPonto: { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: cor.papel },
 });

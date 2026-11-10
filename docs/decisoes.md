@@ -70,6 +70,10 @@ Decisões de produto e de técnica tomadas ao longo do desenvolvimento, com o mo
 | 2026-11-10 | Filtros: tipo de atendimento (4 grupos), rede (Pública, Privada, Filantrópica, com frase explicando filantrópica) e "Só unidades que atendem SUS" | Filantrópica separada porque muitas atendem SUS e "Privada" afastaria quem precisa | Equipe |
 | 2026-11-10 | Busca, atalhos e filtros combinados: dentro de um bloco vale "ou", entre blocos vale "e"; bloco vazio não filtra | Ex.: "Pública" + "upa" mostra só UPAs públicas | Equipe |
 | 2026-11-10 | Os filtros voltam ao normal quando o app é fechado e aberto de novo | Um filtro esquecido ligado faria parecer que unidades sumiram | Claude (aprovado) |
+| 2026-11-10 | Pinos do mapa passam a ser imagens prontas (uma por cor, em 1x/2x/3x, geradas por `scripts/gerar-pinos.mjs`) em vez de Views desenhadas | No teste no celular, tocar num filtro e voltar da tela da unidade davam uma "travadinha": o Android precisava transformar cada uma das ~200 Views em imagem ao recriar os pinos | Equipe |
+| 2026-11-10 | Ao tocar num filtro ou atalho, botões, lista e contagem respondem na hora e o mapa atualiza logo em seguida | O toque não pode engasgar; o mapa é a parte pesada | Equipe |
+| 2026-11-10 | Mini-mapa da tela da unidade em modo leve no Android (`liteMode`, quase uma imagem) e sem toque | Abrir e voltar da unidade travava com um Google Maps completo ali; a rota continua pelo botão "Ir até lá" | Equipe |
+| 2026-11-10 | Bolinhas da legenda do mapa de 12 para 16 px (texto igual) | Com 12 px a cor ficava pequena demais; aumentar a legenda inteira tamparia mais o mapa | Equipe |
 
 ## Processo
 
@@ -91,6 +95,7 @@ Decisões de produto e de técnica tomadas ao longo do desenvolvimento, com o mo
 - **Dados das entrevistas:** horários, serviços e observações ainda não foram lançados no banco. Só duas unidades serão visitadas: falta definir quais.
 - **Selo "Informações conferidas pela equipe":** hoje aparece nas 5 verificadas, mas só 2 serão visitadas. Proposta: mostrar só nas que tiverem dados preenchidos.
 - **Cadastro manual pela equipe:** aprovado como ideia (só a equipe preenche, sem login por unidade); falta escolher entre arquivo no repositório ou painel de administrador.
+- **Travadinha ao voltar da tela da unidade:** melhorou com os pinos em imagem e o mini-mapa leve, mas ainda existe. Causa provável: ao abrir a unidade, o Android desliga a tela inicial (com o mapa grande) e precisa religá-la na volta. Opções levantadas: (a) abrir a unidade por cima da tela inicial, como modal, sem desligá-la; (b) tirar o mini-mapa e trocar por um botão "Ver no mapa"; (c) animação de voltar mais curta ou com esmaecer (só disfarça). Sugestão do Claude: tentar (a) primeiro e medir no `npm run dev:prod`.
 - **Tema claro/escuro:** depois, junto com uma conversa sobre acessibilidade para baixa visão.
 - **Convênios (ex.: CASSI):** o CNES não traz. Falta definir quem preenche, quais convênios, para quais unidades e se cabe no escopo do PEX.
 - **Especialidades (gastro, ginecologia...):** futuro. Caminho oficial seria o arquivo mensal do DATASUS (profissionais e serviços); o alternativo, preenchimento manual.

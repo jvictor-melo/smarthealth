@@ -7,6 +7,7 @@ import { useUnidade } from "../../api/hooks";
 import type { DiaSemana, Rede, UnidadeDetalhe } from "../../api/types";
 import { Texto } from "../../componentes/Texto";
 import { corDoTipo, grupoDoTipo } from "../../mapa/grupos";
+import { imagemDoPino } from "../../mapa/pinos";
 import { abrirRota } from "../../rota/abrirRota";
 import { cor, espaco } from "../../tema";
 import { formatarCep, formatarTelefone, nomeDoTipo, nomeLegivel } from "../../texto/nomes";
@@ -134,10 +135,13 @@ export default function TelaUnidade() {
                     )}
                 </View>
 
-                <View style={styles.miniMapa}>
+                {/* pointerEvents none: no modo leve, tocar no mapa abriria o app do Google Maps; a rota é pelo botão "Ir até lá" */}
+                <View style={styles.miniMapa} pointerEvents="none">
                     <MapView
                         style={StyleSheet.absoluteFill}
                         initialRegion={{ latitude: u.localizacao.lat, longitude: u.localizacao.lng, latitudeDelta: 0.008, longitudeDelta: 0.008 }}
+                        // Android: mapa leve, praticamente uma imagem. Abrir e voltar da unidade travava com um mapa completo aqui
+                        liteMode
                         userInterfaceStyle="light"
                         scrollEnabled={false}
                         zoomEnabled={false}
@@ -145,9 +149,12 @@ export default function TelaUnidade() {
                         pitchEnabled={false}
                         toolbarEnabled={false}
                     >
-                        <Marker coordinate={{ latitude: u.localizacao.lat, longitude: u.localizacao.lng }} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
-                            <View style={[styles.pino, { backgroundColor: corTipo }]} />
-                        </Marker>
+                        <Marker
+                            coordinate={{ latitude: u.localizacao.lat, longitude: u.localizacao.lng }}
+                            anchor={{ x: 0.5, y: 0.5 }}
+                            image={imagemDoPino(u.tipo.codigo)}
+                            tracksViewChanges={false}
+                        />
                     </MapView>
                 </View>
 
@@ -246,7 +253,6 @@ const styles = StyleSheet.create({
     selo: { alignSelf: "flex-start", marginTop: espaco.xs, paddingHorizontal: espaco.m, paddingVertical: 6, borderRadius: 12, backgroundColor: cor.marcaClara },
     seloTexto: { color: cor.marca },
     miniMapa: { height: 190, borderRadius: 20, overflow: "hidden", borderWidth: 1, borderColor: cor.linha },
-    pino: { width: 24, height: 24, borderRadius: 12, borderWidth: 3, borderColor: cor.papel, elevation: 3 },
     secao: { gap: espaco.xs },
     telefone: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
     botaoLigar: { paddingHorizontal: espaco.l, paddingVertical: espaco.s, borderRadius: 18, borderWidth: 1.5, borderColor: cor.marca },

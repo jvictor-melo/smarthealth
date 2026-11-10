@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import type { Unidade } from "../api/types";
 import type { Coordenada } from "../config";
-import { corDoTipo } from "../mapa/grupos";
-import { cor } from "../tema";
+import { imagemDoPino } from "../mapa/pinos";
 import { nomeDoTipo, nomeLegivel } from "../texto/nomes";
 
 // Esconde restaurantes, lojas etc. do Google Maps (Android) para só os pinos de saúde aparecerem
@@ -58,11 +57,10 @@ export function MapaUnidades({ posicao, unidades, onSelecionar }: Props) {
                     description={`${nomeDoTipo(u.tipo)}. Toque para ver detalhes`}
                     onCalloutPress={() => onSelecionar(u.codigo_cnes)}
                     anchor={{ x: 0.5, y: 0.5 }}
-                    // Pino é uma View estática: sem isso o Android redesenha os 200 pinos a cada quadro
+                    // Imagem pronta em vez de View: o mapa não precisa "fotografar" cada pino (ver mapa/pinos.ts)
+                    image={imagemDoPino(u.tipo.codigo)}
                     tracksViewChanges={false}
-                >
-                    <View style={[styles.pino, { backgroundColor: corDoTipo(u.tipo.codigo) }]} />
-                </Marker>
+                />
             ))}
         </MapView>
     );
@@ -70,12 +68,4 @@ export function MapaUnidades({ posicao, unidades, onSelecionar }: Props) {
 
 const styles = StyleSheet.create({
     mapa: { flex: 1 },
-    pino: {
-        width: 22,
-        height: 22,
-        borderRadius: 11,
-        borderWidth: 3,
-        borderColor: cor.papel,
-        elevation: 3,
-    },
 });
