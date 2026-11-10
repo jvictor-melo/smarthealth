@@ -105,6 +105,7 @@ Devolve o objeto direto: `{ "codigo_tipo_unidade": 73, "descricao_tipo_unidade":
 | 13 | `numero_estabelecimento` pode ser `"S/N"`. | Vira `null`. |
 | 14 | Várias strings vêm com espaços sobrando (ex: `"M "`). | `trim` em tudo; string vazia vira `null`. |
 | 15 | Algumas coordenadas caem fora de Teresina (erro de cadastro na origem; nos tipos permitidos hoje há 1 caso, CNES 47872). | Mantemos como veio; o filtro por raio do app já exclui na prática. |
+| 16 | `descricao_natureza_juridica_estabelecimento`, **apesar do nome, traz o código** da natureza jurídica (4 dígitos, ex.: `"1155"`), não a descrição. | Guardamos o código em `natureza_juridica`. A API do serviço devolve `rede` pelo primeiro dígito: 1 = `publica`, 2 = `privada`, 3 = `filantropica` (sem fins lucrativos); outros = `null` (ver `src/cnes/rede.ts`). |
 
 ### Números de Teresina (outubro/2026)
 
@@ -168,7 +169,7 @@ PostgreSQL + PostGIS, com migrations do Drizzle em `drizzle/`.
 | Tabela | Conteúdo |
 |---|---|
 | `tipos_unidade` | `codigo` (pk), `descricao`, de `/cnes/tipounidades` |
-| `unidades` | `codigo_cnes` (pk), campos do CNES, `localizacao geography(Point,4326)` (índice GiST), `ativo`, `verificada`, `sincronizado_em` e as colunas manuais |
+| `unidades` | `codigo_cnes` (pk), campos do CNES (inclusive `natureza_juridica`), `localizacao geography(Point,4326)` (índice GiST), `ativo`, `verificada`, `sincronizado_em` e as colunas manuais |
 | `sync_execucoes` | Histórico de cada sync: modo, status (`running`/`success`/`failed`), início/fim, contagens e erro |
 
 Unidades nunca são deletadas: quando saem do filtro ou ficam inativas, recebem `ativo = false`.
@@ -199,7 +200,7 @@ Documentação interativa em **`/docs`**, e a spec JSON em `/docs.json`.
 
 | Rota | Descrição |
 |---|---|
-| `GET /units?lat=&lng=&raio_m=&tipo=&sus=&limit=&offset=` | Unidades ativas. Com `lat`+`lng`: filtra pelo raio (padrão 5000 m, máx. 50000) e ordena por distância (`distancia_m`). `tipo` aceita lista (`2,73`). `sus=true\|false`. `meta.dados_atualizados_em` traz a data do último sync. |
+| `GET /units?lat=&lng=&raio_m=&tipo=&sus=&limit=&offset=` | Unidades ativas. Com `lat`+`lng`: filtra pelo raio (padrão 5000 m, máx. 50000) e ordena por distância (`distancia_m`). `tipo` aceita lista (`2,73`). `sus=true\|false`. `meta.dados_atualizados_em` traz a data do último sync. Cada unidade traz `rede` (`publica`, `privada`, `filantropica` ou `null`). |
 | `GET /units/:codigoCnes` | Detalhe da unidade; `detalhes_verificados` com os dados manuais quando `verificada`. |
 | `GET /unit-types` | Tipos com unidades ativas e a contagem (`?todos=true` traz os 39). |
 | `GET /health` | Status do banco e `dados_atualizados_em`. 503 se o banco cair. |

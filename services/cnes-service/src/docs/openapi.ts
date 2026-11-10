@@ -168,6 +168,13 @@ export const openapi = {
                     atende_sus: { type: "boolean" },
                     possui_centro_obstetrico: nullableBoolean,
                     possui_centro_cirurgico: nullableBoolean,
+                    rede: {
+                        type: "string",
+                        nullable: true,
+                        enum: ["publica", "privada", "filantropica"],
+                        description:
+                            "Pela natureza jurídica do CNES: 1xxx pública, 2xxx privada, 3xxx filantrópica (sem fins lucrativos); null nos demais casos",
+                    },
                     verificada: { type: "boolean", description: "Unidade com dados levantados em entrevista" },
                     ativo: { type: "boolean" },
                     data_atualizacao_cnes: { type: "string", format: "date", nullable: true },

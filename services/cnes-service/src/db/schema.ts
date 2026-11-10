@@ -47,6 +47,8 @@ export const unidades = pgTable(
         atendeSus: boolean("atende_sus").notNull(),
         possuiCentroObstetrico: boolean("possui_centro_obstetrico"),
         possuiCentroCirurgico: boolean("possui_centro_cirurgico"),
+        /** Código de 4 dígitos; o primeiro define a rede (ver cnes/rede.ts) */
+        naturezaJuridica: text("natureza_juridica"),
         dataAtualizacaoCnes: date("data_atualizacao_cnes"),
 
         // --- Controle do sync ---

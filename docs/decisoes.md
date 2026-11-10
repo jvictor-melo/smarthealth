@@ -13,6 +13,7 @@ Decisões de produto e de técnica tomadas ao longo do desenvolvimento, com o mo
 | 2026-11-05 | Desenvolvimento de um site público | Sem site: só o app mobile | Foco no app dentro do prazo | Equipe |
 | 2026-11-05 | Gestores e profissionais cadastrando e atualizando dados | Fora da primeira versão (sem login nem área de gestor) | Prazo; o user-service ainda é um esqueleto | Claude (aprovado) |
 | 2026-11-05 | Pesquisa e filtros por tipo de atendimento | Mantido, e a equipe acrescentou a ideia de pesquisar por **sintoma** | Encaminhar a pessoa ao lugar certo, não só ao mais próximo | Equipe |
+| 2026-11-10 | Entrevistas nas cinco unidades da Zona Leste | Visita presencial a só **duas** unidades, possivelmente sem os nomes dos especialistas | Disponibilidade da equipe e das unidades | Equipe |
 
 ## Dados (cnes-service)
 
@@ -29,6 +30,7 @@ Decisões de produto e de técnica tomadas ao longo do desenvolvimento, com o mo
 | 2026-11-02 | A sincronização completa é cancelada se vier vazia ou com menos da metade das unidades ativas | Proteção contra a API devolver dados quebrados e o sync desativar tudo | Claude |
 | 2026-11-02 | Postgres + PostGIS, com localização em `geography(Point, 4326)` e índice espacial | Busca por raio em metros reais e ordenação por distância rápidas | Equipe |
 | 2026-11-02 | Cliente da API com pausa de ~150 ms entre chamadas, 3 tentativas e tempo limite | Respeitar a API pública e aguentar instabilidade | Equipe |
+| 2026-11-10 | O sync passa a guardar a natureza jurídica de cada unidade, e a API devolve a **rede**: código começando com 1 = pública, 2 = privada, 3 = filantrópica; outros = sem rede definida | Dado oficial do CNES, presente em todas as unidades, para o filtro de rede | Equipe |
 
 ## API e arquitetura
 
@@ -53,7 +55,7 @@ Decisões de produto e de técnica tomadas ao longo do desenvolvimento, com o mo
 | 2026-11-05 | Sem permissão de GPS: mapa abre no centro de Teresina, lista vira "Unidades em Teresina" e não mostra distância | Distância até o centro da cidade enganaria a pessoa | Claude (aprovado) |
 | 2026-11-05 | Busca feita no próprio app sobre as unidades carregadas: cada palavra digitada precisa ser o começo de uma palavra do nome, sem diferenciar acento ou maiúscula; palavras como "upa", "posto" e "hospital" filtram por tipo | Teresina tem ~195 unidades, cabe no celular; evita mexer no back-end agora | Claude (aprovado) |
 | 2026-11-05 | A distância na lista é calculada a partir da pessoa, não do centro do mapa | Senão a lista mudaria de ordem ao arrastar o mapa | Claude |
-| 2026-11-05 | Cores dos pinos: vermelho para urgência (UPA, pronto-socorro), azul para hospital, verde para posto/UBS, cinza para o resto | Leitura rápida do tipo de atendimento | Claude |
+| 2026-11-05 | Cores dos pinos: vermelho para urgência (UPA, pronto-socorro), azul para hospital, verde para posto/UBS, cinza para o resto. **Substituída** em 2026-11-10: o cinza (policlínicas) virou o grupo "Especialidades e exames" | Leitura rápida do tipo de atendimento | Claude |
 | 2026-11-06 | Cada chamada à API desiste depois de 10 s, e o app tenta de novo só uma vez antes de mostrar o erro | No primeiro teste no celular, com o banco fora do ar, o app ficou carregando sem fim e sem aviso | Claude |
 | 2026-11-06 | Enquanto as unidades não chegam, a tela mostra "Carregando unidades…" no lugar da lista | A lista simplesmente sumia e parecia que o app não sugeria nada | Claude |
 | 2026-11-06 | O mapa esconde os pontos de interesse do Google (restaurantes, lojas, escolas) | No teste no celular eles se misturavam com as unidades de saúde | Equipe |
@@ -62,6 +64,12 @@ Decisões de produto e de técnica tomadas ao longo do desenvolvimento, com o mo
 | 2026-11-06 | O app baixa todas as unidades de Teresina numa chamada só (~195, ~110 KB) e não busca de novo ao arrastar o mapa. **Substitui** a decisão de buscar de novo a partir do centro do mapa ao arrastar | Pinos aparecem sem depender do GPS e arrastar o mapa não carrega nada. Limite: a API entrega até 200 por chamada; se a base crescer (ex.: tipos 22 e 36), precisa mudar | Equipe |
 | 2026-11-06 | As unidades ficam guardadas no celular por até 7 dias: da segunda abertura em diante os pinos aparecem na hora e o app atualiza por trás. Se a atualização falhar e houver unidades guardadas, o app mostra as guardadas sem aviso de erro | Os dados só mudam no sync semanal do CNES | Equipe (o "sem aviso" é escolha do Claude) |
 | 2026-11-05 | No topo da tela inicial aparece o nome "SmartHealth" pequeno | O desenho tinha algo no topo; a equipe ainda não confirmou o que era | Claude (a confirmar) |
+| 2026-11-10 | Policlínicas (tipo 4) viram o grupo **"Especialidades e exames"**, com cor própria (roxo), na legenda e nos filtros; na tela da unidade aparece "consultas com especialistas e exames, sem urgência" | Muita gente não sabe o que é policlínica, e os pinos cinza ficavam sem nome | Equipe |
+| 2026-11-10 | Botão **"Filtros"** ao lado da busca, abrindo um painel de baixo para cima (em vez de filtros num menu hambúrguer) | Filtro escondido no menu costuma ser pouco usado; o hambúrguer fica para seções do app no futuro | Equipe |
+| 2026-11-10 | Os atalhos UPA / Hospital / Posto continuam, ao lado do botão Filtros | O caso mais comum fica a um toque, visível (acessibilidade) | Equipe |
+| 2026-11-10 | Filtros: tipo de atendimento (4 grupos), rede (Pública, Privada, Filantrópica, com frase explicando filantrópica) e "Só unidades que atendem SUS" | Filantrópica separada porque muitas atendem SUS e "Privada" afastaria quem precisa | Equipe |
+| 2026-11-10 | Busca, atalhos e filtros combinados: dentro de um bloco vale "ou", entre blocos vale "e"; bloco vazio não filtra | Ex.: "Pública" + "upa" mostra só UPAs públicas | Equipe |
+| 2026-11-10 | Os filtros voltam ao normal quando o app é fechado e aberto de novo | Um filtro esquecido ligado faria parecer que unidades sumiram | Claude (aprovado) |
 
 ## Processo
 
@@ -73,12 +81,19 @@ Decisões de produto e de técnica tomadas ao longo do desenvolvimento, com o mo
 | 2026-11-05 | Teste no celular pelo Expo Go na mesma rede do PC; acesso por qualquer rede exige túnel público, que precisa ser aberto por alguém da equipe | Abrir túnel expõe o gateway na internet | Equipe |
 | 2026-11-06 | Comando único `npm run dev` na raiz (Postgres, cnes-service, gateway e Expo num terminal só), com `npm run setup` para instalar tudo; os comandos de cada pasta continuam valendo | Antes eram 4 terminais e 4 comandos para testar o app | Equipe |
 | 2026-11-06 | `npm run dev:prod`: o mesmo comando único, com o Expo em modo de produção (`--no-dev --minify`) | Medir a velocidade como no APK, antes e depois das otimizações | Equipe |
+| 2026-11-10 | Ordem dos próximos passos: 1º filtros + rede + "Especialidades e exames"; depois APK com a API na internet; tema escuro mais adiante | Prioridade combinada na conversa de ideias | Equipe |
+| 2026-11-10 | Nenhuma alteração em arquivos sem a equipe autorizar; em fase de conversa, só se discute | Pedido da equipe | Equipe |
 
 ## Em aberto
 
 - **Busca por sintomas:** falta a lista de sintomas e a regra de encaminhamento. Proposta do Claude: uma tabela fixa, feita pela equipe ou com um profissional das entrevistas, ligando cada sintoma a uma gravidade e a tipos de unidade, com aviso para ligar para o SAMU (192) nos casos graves. Entraria em `app/src/busca/sinonimos.ts`.
 - **Coordenadas do Hospital e Maternidade do Satélite (2679639):** o CNES tem coordenadas imprecisas e o hospital aparece ~5 km longe de onde fica. Proposta: coluna de coordenada manual para as verificadas, com prioridade sobre a do CNES.
-- **Dados das entrevistas:** horários, serviços e observações das cinco unidades ainda não foram lançados no banco.
+- **Dados das entrevistas:** horários, serviços e observações ainda não foram lançados no banco. Só duas unidades serão visitadas: falta definir quais.
+- **Selo "Informações conferidas pela equipe":** hoje aparece nas 5 verificadas, mas só 2 serão visitadas. Proposta: mostrar só nas que tiverem dados preenchidos.
+- **Cadastro manual pela equipe:** aprovado como ideia (só a equipe preenche, sem login por unidade); falta escolher entre arquivo no repositório ou painel de administrador.
+- **Tema claro/escuro:** depois, junto com uma conversa sobre acessibilidade para baixa visão.
+- **Convênios (ex.: CASSI):** o CNES não traz. Falta definir quem preenche, quais convênios, para quais unidades e se cabe no escopo do PEX.
+- **Especialidades (gastro, ginecologia...):** futuro. Caminho oficial seria o arquivo mensal do DATASUS (profissionais e serviços); o alternativo, preenchimento manual.
 - **Tipos 22 e 36:** entram ou não na base.
 - **APK:** gerar pelo EAS exige uma chave do Google Maps para Android.
 - **Prazo:** pelo cronograma do PEX, testes em novembro e dezembro e apresentação em dezembro de 2026.

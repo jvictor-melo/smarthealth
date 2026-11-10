@@ -1,4 +1,5 @@
 import { and, asc, eq, inArray, sql, type SQL } from "drizzle-orm";
+import { redeDaNatureza } from "../cnes/rede.js";
 import { db } from "../db/client.js";
 import { tiposUnidade, unidades } from "../db/schema.js";
 import { ultimoSyncComSucesso } from "../sync/sync.service.js";
@@ -30,6 +31,7 @@ const camposBase = {
     atendeSus: unidades.atendeSus,
     possuiCentroObstetrico: unidades.possuiCentroObstetrico,
     possuiCentroCirurgico: unidades.possuiCentroCirurgico,
+    naturezaJuridica: unidades.naturezaJuridica,
     verificada: unidades.verificada,
     ativo: unidades.ativo,
     dataAtualizacaoCnes: unidades.dataAtualizacaoCnes,
@@ -60,6 +62,7 @@ interface LinhaBase {
     atendeSus: boolean;
     possuiCentroObstetrico: boolean | null;
     possuiCentroCirurgico: boolean | null;
+    naturezaJuridica: string | null;
     verificada: boolean;
     ativo: boolean;
     dataAtualizacaoCnes: string | null;
@@ -78,6 +81,7 @@ function toUnidadeDto(linha: LinhaBase) {
         atende_sus: linha.atendeSus,
         possui_centro_obstetrico: linha.possuiCentroObstetrico,
         possui_centro_cirurgico: linha.possuiCentroCirurgico,
+        rede: redeDaNatureza(linha.naturezaJuridica),
         verificada: linha.verificada,
         ativo: linha.ativo,
         data_atualizacao_cnes: linha.dataAtualizacaoCnes,
