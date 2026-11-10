@@ -4,12 +4,18 @@ import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } f
 import MapView, { Marker } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUnidade } from "../../api/hooks";
-import type { DiaSemana, UnidadeDetalhe } from "../../api/types";
+import type { DiaSemana, Rede, UnidadeDetalhe } from "../../api/types";
 import { Texto } from "../../componentes/Texto";
-import { corDoTipo } from "../../mapa/cores";
+import { corDoTipo, grupoDoTipo } from "../../mapa/grupos";
 import { abrirRota } from "../../rota/abrirRota";
 import { cor, espaco } from "../../tema";
 import { formatarCep, formatarTelefone, nomeDoTipo, nomeLegivel } from "../../texto/nomes";
+
+const NOME_REDE: Record<Rede, string> = {
+    publica: "Unidade pública",
+    privada: "Unidade privada",
+    filantropica: "Filantrópica (sem fins lucrativos)",
+};
 
 const DIAS: { chave: DiaSemana; nome: string }[] = [
     { chave: "seg", nome: "Segunda" },
@@ -80,6 +86,7 @@ export default function TelaUnidade() {
     }
 
     const corTipo = corDoTipo(u.tipo.codigo);
+    const grupo = grupoDoTipo(u.tipo.codigo);
     const detalhes = u.detalhes_verificados;
     const horarios = DIAS.filter((d) => detalhes?.horarios?.[d.chave]?.length);
     const endereco = linhasEndereco(u);
@@ -97,6 +104,27 @@ export default function TelaUnidade() {
                     <Texto variante="nome" negrito>
                         {nomeLegivel(u.nome)}
                     </Texto>
+                    {grupo === "especialidades" && (
+                        <Texto suave>Policlínica: consultas com especialistas e exames, sem urgência.</Texto>
+                    )}
+                    {(u.rede || u.atende_sus) && (
+                        <View style={styles.etiquetas}>
+                            {u.rede && (
+                                <View style={styles.etiqueta}>
+                                    <Texto variante="legenda" negrito>
+                                        {NOME_REDE[u.rede]}
+                                    </Texto>
+                                </View>
+                            )}
+                            {u.atende_sus && (
+                                <View style={styles.etiqueta}>
+                                    <Texto variante="legenda" negrito>
+                                        Atende SUS
+                                    </Texto>
+                                </View>
+                            )}
+                        </View>
+                    )}
                     {u.verificada && (
                         <View style={styles.selo}>
                             <Texto variante="legenda" negrito style={styles.seloTexto}>
@@ -213,6 +241,8 @@ const styles = StyleSheet.create({
     cabecalho: { gap: espaco.s },
     tipo: { flexDirection: "row", alignItems: "center", gap: espaco.s },
     tipoPonto: { width: 12, height: 12, borderRadius: 6 },
+    etiquetas: { flexDirection: "row", flexWrap: "wrap", gap: espaco.s, marginTop: espaco.xs },
+    etiqueta: { paddingHorizontal: espaco.m, paddingVertical: 6, borderRadius: 12, backgroundColor: cor.superficie },
     selo: { alignSelf: "flex-start", marginTop: espaco.xs, paddingHorizontal: espaco.m, paddingVertical: 6, borderRadius: 12, backgroundColor: cor.marcaClara },
     seloTexto: { color: cor.marca },
     miniMapa: { height: 190, borderRadius: 20, overflow: "hidden", borderWidth: 1, borderColor: cor.linha },

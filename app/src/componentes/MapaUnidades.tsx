@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import type { Unidade } from "../api/types";
 import type { Coordenada } from "../config";
-import { corDoTipo } from "../mapa/cores";
+import { corDoTipo } from "../mapa/grupos";
 import { cor } from "../tema";
 import { nomeDoTipo, nomeLegivel } from "../texto/nomes";
 

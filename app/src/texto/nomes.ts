@@ -33,7 +33,8 @@ export function formatarCep(cep: string): string {
 const TIPOS: Record<number, string> = {
     1: "Posto de saúde",
     2: "Unidade básica de saúde",
-    4: "Policlínica",
+    // Muita gente não sabe o que é policlínica; a tela da unidade explica o termo oficial
+    4: "Especialidades e exames",
     5: "Hospital geral",
     7: "Hospital especializado",
     15: "Unidade mista",

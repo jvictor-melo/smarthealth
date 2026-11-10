@@ -1,40 +1,42 @@
 import { router } from "expo-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUnidadesTeresina } from "../api/hooks";
 import { filtrarUnidades } from "../busca/filtrar";
+import { aplicarFiltros, contarFiltros } from "../busca/filtros";
 import { BarraBusca } from "../componentes/BarraBusca";
 import { ListaUnidades } from "../componentes/ListaUnidades";
 import { MapaUnidades } from "../componentes/MapaUnidades";
+import { PainelFiltros } from "../componentes/PainelFiltros";
 import { Texto } from "../componentes/Texto";
 import { API_URL } from "../config";
 import { useBusca } from "../estado/busca";
+import { useFiltros } from "../estado/filtros";
 import { useLocalizacao } from "../localizacao/useLocalizacao";
 import { distanciaM } from "../mapa/distancia";
+import { GRUPOS } from "../mapa/grupos";
 import { itensVisiveis } from "../mapa/itensVisiveis";
 import { cor, espaco } from "../tema";
-
-const LEGENDA = [
-    { cor: cor.urgencia, nome: "Urgência" },
-    { cor: cor.hospital, nome: "Hospital" },
-    { cor: cor.basica, nome: "Posto / UBS" },
-];
 
 export default function TelaInicial() {
     const { posicao, usandoGps, carregando: carregandoGps } = useLocalizacao();
     const termo = useBusca((s) => s.termo);
+    const filtros = useFiltros();
+    const [painelAberto, setPainelAberto] = useState(false);
     const { height } = useWindowDimensions();
 
     // Não espera o GPS: as unidades são as mesmas para qualquer ponto de Teresina
     const consulta = useUnidadesTeresina();
 
     const filtradas = useMemo(() => {
-        const encontradas = filtrarUnidades(consulta.data?.unidades ?? [], termo);
+        // Busca por texto (e atalhos) e filtros se combinam: a unidade precisa passar nos dois
+        const encontradas = aplicarFiltros(filtrarUnidades(consulta.data?.unidades ?? [], termo), filtros);
         // A API ordena pelo centro da busca, que muda ao arrastar o mapa; a lista ordena pela pessoa
         if (!usandoGps) return encontradas;
         return [...encontradas].sort((a, b) => distanciaM(posicao, a.localizacao) - distanciaM(posicao, b.localizacao));
-    }, [consulta.data, termo, usandoGps, posicao]);
+    }, [consulta.data, termo, filtros, usandoGps, posicao]);
+    const comFiltros = contarFiltros(filtros) > 0;
 
     useEffect(() => {
         // Aparece no terminal do Expo: ajuda a saber se o celular não alcança o gateway ou se a API respondeu erro
@@ -42,12 +44,13 @@ export default function TelaInicial() {
     }, [consulta.error]);
 
     // Enquanto a permissão é decidida, já trata como "próximos" para o título não piscar
-    const titulo = termo.trim() ? "Resultados" : usandoGps || carregandoGps ? "Lugares próximos" : "Unidades em Teresina";
+    const titulo = termo.trim() || comFiltros ? "Resultados" : usandoGps || carregandoGps ? "Lugares próximos" : "Unidades em Teresina";
     const abrirUnidade = (codigo: number) => router.push(`/unidade/${codigo}`);
 
     return (
         <SafeAreaView style={styles.tela} edges={["top", "left", "right"]}>
-            <BarraBusca />
+            <BarraBusca onAbrirFiltros={() => setPainelAberto(true)} />
+            <PainelFiltros visivel={painelAberto} onFechar={() => setPainelAberto(false)} quantidade={filtradas.length} />
             {!usandoGps && !carregandoGps && (
                 <Texto variante="legenda" style={styles.aviso}>
                     Sem acesso à sua localização. Mostrando unidades a partir do centro de Teresina.
@@ -65,6 +68,11 @@ export default function TelaInicial() {
                     origem={usandoGps ? posicao : null}
                     maxItens={itensVisiveis(height)}
                     onSelecionar={abrirUnidade}
+                    mensagemVazia={
+                        comFiltros
+                            ? "Nenhuma unidade com esses filtros. Toque em Filtros e depois em Limpar para ver todas."
+                            : "Nenhuma unidade com esse nome por perto. Tente “UPA”, “posto” ou “hospital”."
+                    }
                 />
             )}
 
@@ -84,10 +92,10 @@ export default function TelaInicial() {
                     </View>
                 )}
                 <View style={styles.legenda} pointerEvents="none">
-                    {LEGENDA.map((l) => (
-                        <View key={l.nome} style={styles.legendaItem}>
-                            <View style={[styles.legendaPonto, { backgroundColor: l.cor }]} />
-                            <Texto variante="legenda">{l.nome}</Texto>
+                    {GRUPOS.map((g) => (
+                        <View key={g.id} style={styles.legendaItem}>
+                            <View style={[styles.legendaPonto, { backgroundColor: g.cor }]} />
+                            <Texto variante="legenda">{g.nome}</Texto>
                         </View>
                     ))}
                 </View>
@@ -126,9 +134,13 @@ const styles = StyleSheet.create({
     legenda: {
         position: "absolute",
         left: espaco.m,
+        right: espaco.m,
         bottom: espaco.m,
         flexDirection: "row",
-        gap: espaco.m,
+        // 4 grupos não cabem numa linha em celular estreito: quebra em vez de cortar
+        flexWrap: "wrap",
+        columnGap: espaco.m,
+        rowGap: espaco.xs,
         paddingHorizontal: espaco.m,
         paddingVertical: espaco.s,
         borderRadius: 14,

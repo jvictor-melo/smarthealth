@@ -83,6 +83,7 @@ O fluxo do sync é `cnes/` → `sync/` → `db/`, e o das rotas é `routes/` →
 - `src/config/env.ts`: variáveis validadas com zod (veja `.env.example`).
 - `src/db/schema.ts`: tabelas `tipos_unidade`, `unidades` (pk `codigo_cnes`, `localizacao geography(Point,4326)` com índice GiST) e `sync_execucoes`. O tipo geography customizado fica em `src/db/geography.ts`.
 - `src/services/units.service.ts`: consultas das rotas. O raio usa `ST_DWithin`, a ordenação usa KNN (`<->`) e a resposta JSON é em snake_case. `detalhes_verificados` só aparece para unidades verificadas.
+- `src/cnes/rede.ts`: `rede` da resposta vem do primeiro dígito da natureza jurídica (coluna `natureza_juridica`): 1 pública, 2 privada, 3 filantrópica, resto `null`. O campo do CNES se chama `descricao_natureza_juridica_estabelecimento` mas traz o código.
 - `src/docs/openapi.ts`: spec OpenAPI escrita à mão; atualize junto quando mudar uma rota ou um formato de resposta.
 
 ### Limitações conhecidas dos dados
@@ -111,4 +112,6 @@ Expo SDK 58 + Expo Router, rotas em `app/src/app/` (só telas; o resto do códig
 - O mapa não espera o GPS: `useLocalizacao` entrega centro → última posição guardada → GPS, e o `MapaUnidades` desliza (`animateToRegion`) a cada melhora.
 - As respostas da API ficam guardadas no celular por 7 dias (`PersistQueryClientProvider` + AsyncStorage, em `_layout.tsx`). Mudou o formato da resposta da API? Troque o `buster` lá, senão o app usa o cache no formato antigo.
 - A busca é local, sobre as unidades carregadas: cada palavra digitada precisa ser início de uma palavra do nome, e termos de `src/busca/sinonimos.ts` ("upa", "posto", "hospital"...) viram filtro por tipo. Busca por sintomas ainda não existe; quando existir, entra como mais chaves em `sinonimos.ts`.
+- `src/mapa/grupos.ts` é o lugar único da regra tipo do CNES → grupo (Urgência 20/73, Hospital 5/7/15, Posto/UBS 1/2, "Especialidades e exames" 4 = policlínica), com nome e cor. Pinos, legenda, lista, filtros e tela da unidade usam daqui.
+- Filtros (`src/busca/filtros.ts` + `src/estado/filtros.ts`): grupos, rede e "só SUS", combinados com a busca. Dentro de um bloco é "ou", entre blocos é "e", bloco vazio não filtra. Ficam só na memória: voltam ao normal quando o app fecha (decisão da equipe).
 - `src/api/types.ts` espelha o OpenAPI do cnes-service; mudou o formato de resposta lá, atualize aqui.

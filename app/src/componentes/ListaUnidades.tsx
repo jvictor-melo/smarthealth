@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import type { Unidade } from "../api/types";
 import type { Coordenada } from "../config";
-import { corDoTipo } from "../mapa/cores";
+import { corDoTipo } from "../mapa/grupos";
 import { distanciaM, formatarDistancia } from "../mapa/distancia";
 import { cor, espaco } from "../tema";
 import { nomeDoTipo, nomeLegivel } from "../texto/nomes";
@@ -14,9 +14,11 @@ interface Props {
     origem: Coordenada | null;
     maxItens: number;
     onSelecionar: (codigoCnes: number) => void;
+    /** Texto quando nada passa na busca/filtros; muda conforme a causa para a pessoa saber o que fazer */
+    mensagemVazia: string;
 }
 
-export function ListaUnidades({ titulo, unidades, origem, maxItens, onSelecionar }: Props) {
+export function ListaUnidades({ titulo, unidades, origem, maxItens, onSelecionar, mensagemVazia }: Props) {
     return (
         <View style={styles.container}>
             <Texto variante="titulo" negrito style={styles.titulo}>
@@ -24,7 +26,7 @@ export function ListaUnidades({ titulo, unidades, origem, maxItens, onSelecionar
             </Texto>
             {unidades.length === 0 ? (
                 <Texto suave style={styles.vazio}>
-                    Nenhuma unidade com esse nome por perto. Tente “UPA”, “posto” ou “hospital”.
+                    {mensagemVazia}
                 </Texto>
             ) : (
                 unidades.slice(0, maxItens).map((u, i) => {
