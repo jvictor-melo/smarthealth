@@ -24,6 +24,8 @@ export interface EstabelecimentoCru {
     estabelecimento_possui_centro_cirurgico: number | null;
     /** 1 | 0 | null */
     estabelecimento_possui_centro_obstetrico: number | null;
+    /** Apesar do nome, traz o CÓDIGO da natureza jurídica (4 dígitos, ex.: "1155"), não a descrição. */
+    descricao_natureza_juridica_estabelecimento?: string | number | null;
     codigo_motivo_desabilitacao_estabelecimento: string | number | null;
     /** YYYY-MM-DD */
     data_atualizacao: string | null;

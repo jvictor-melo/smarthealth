@@ -4,12 +4,19 @@ import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } f
 import MapView, { Marker } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUnidade } from "../../api/hooks";
-import type { DiaSemana, UnidadeDetalhe } from "../../api/types";
+import type { DiaSemana, Rede, UnidadeDetalhe } from "../../api/types";
 import { Texto } from "../../componentes/Texto";
-import { corDoTipo } from "../../mapa/cores";
+import { corDoTipo, grupoDoTipo } from "../../mapa/grupos";
+import { imagemDoPino } from "../../mapa/pinos";
 import { abrirRota } from "../../rota/abrirRota";
 import { cor, espaco } from "../../tema";
 import { formatarCep, formatarTelefone, nomeDoTipo, nomeLegivel } from "../../texto/nomes";
+
+const NOME_REDE: Record<Rede, string> = {
+    publica: "Unidade pública",
+    privada: "Unidade privada",
+    filantropica: "Filantrópica (sem fins lucrativos)",
+};
 
 const DIAS: { chave: DiaSemana; nome: string }[] = [
     { chave: "seg", nome: "Segunda" },
@@ -80,6 +87,7 @@ export default function TelaUnidade() {
     }
 
     const corTipo = corDoTipo(u.tipo.codigo);
+    const grupo = grupoDoTipo(u.tipo.codigo);
     const detalhes = u.detalhes_verificados;
     const horarios = DIAS.filter((d) => detalhes?.horarios?.[d.chave]?.length);
     const endereco = linhasEndereco(u);
@@ -97,6 +105,27 @@ export default function TelaUnidade() {
                     <Texto variante="nome" negrito>
                         {nomeLegivel(u.nome)}
                     </Texto>
+                    {grupo === "especialidades" && (
+                        <Texto suave>Policlínica: consultas com especialistas e exames, sem urgência.</Texto>
+                    )}
+                    {(u.rede || u.atende_sus) && (
+                        <View style={styles.etiquetas}>
+                            {u.rede && (
+                                <View style={styles.etiqueta}>
+                                    <Texto variante="legenda" negrito>
+                                        {NOME_REDE[u.rede]}
+                                    </Texto>
+                                </View>
+                            )}
+                            {u.atende_sus && (
+                                <View style={styles.etiqueta}>
+                                    <Texto variante="legenda" negrito>
+                                        Atende SUS
+                                    </Texto>
+                                </View>
+                            )}
+                        </View>
+                    )}
                     {u.verificada && (
                         <View style={styles.selo}>
                             <Texto variante="legenda" negrito style={styles.seloTexto}>
@@ -106,10 +135,13 @@ export default function TelaUnidade() {
                     )}
                 </View>
 
-                <View style={styles.miniMapa}>
+                {/* pointerEvents none: no modo leve, tocar no mapa abriria o app do Google Maps; a rota é pelo botão "Ir até lá" */}
+                <View style={styles.miniMapa} pointerEvents="none">
                     <MapView
                         style={StyleSheet.absoluteFill}
                         initialRegion={{ latitude: u.localizacao.lat, longitude: u.localizacao.lng, latitudeDelta: 0.008, longitudeDelta: 0.008 }}
+                        // Android: mapa leve, praticamente uma imagem. Abrir e voltar da unidade travava com um mapa completo aqui
+                        liteMode
                         userInterfaceStyle="light"
                         scrollEnabled={false}
                         zoomEnabled={false}
@@ -117,9 +149,12 @@ export default function TelaUnidade() {
                         pitchEnabled={false}
                         toolbarEnabled={false}
                     >
-                        <Marker coordinate={{ latitude: u.localizacao.lat, longitude: u.localizacao.lng }} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
-                            <View style={[styles.pino, { backgroundColor: corTipo }]} />
-                        </Marker>
+                        <Marker
+                            coordinate={{ latitude: u.localizacao.lat, longitude: u.localizacao.lng }}
+                            anchor={{ x: 0.5, y: 0.5 }}
+                            image={imagemDoPino(u.tipo.codigo)}
+                            tracksViewChanges={false}
+                        />
                     </MapView>
                 </View>
 
@@ -213,10 +248,11 @@ const styles = StyleSheet.create({
     cabecalho: { gap: espaco.s },
     tipo: { flexDirection: "row", alignItems: "center", gap: espaco.s },
     tipoPonto: { width: 12, height: 12, borderRadius: 6 },
+    etiquetas: { flexDirection: "row", flexWrap: "wrap", gap: espaco.s, marginTop: espaco.xs },
+    etiqueta: { paddingHorizontal: espaco.m, paddingVertical: 6, borderRadius: 12, backgroundColor: cor.superficie },
     selo: { alignSelf: "flex-start", marginTop: espaco.xs, paddingHorizontal: espaco.m, paddingVertical: 6, borderRadius: 12, backgroundColor: cor.marcaClara },
     seloTexto: { color: cor.marca },
     miniMapa: { height: 190, borderRadius: 20, overflow: "hidden", borderWidth: 1, borderColor: cor.linha },
-    pino: { width: 24, height: 24, borderRadius: 12, borderWidth: 3, borderColor: cor.papel, elevation: 3 },
     secao: { gap: espaco.xs },
     telefone: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
     botaoLigar: { paddingHorizontal: espaco.l, paddingVertical: espaco.s, borderRadius: 18, borderWidth: 1.5, borderColor: cor.marca },

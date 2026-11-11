@@ -1,15 +1,22 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { contarFiltros } from "../busca/filtros";
 import { useBusca } from "../estado/busca";
+import { useFiltros } from "../estado/filtros";
 import { cor, espaco, fonte, tamanho } from "../tema";
 import { Texto } from "./Texto";
 
 /** Atalhos que só preenchem a busca: os mesmos termos de src/busca/sinonimos.ts */
 const ATALHOS = ["UPA", "Hospital", "Posto"];
 
-export function BarraBusca() {
+interface Props {
+    onAbrirFiltros: () => void;
+}
+
+export function BarraBusca({ onAbrirFiltros }: Props) {
     const { termo, setTermo } = useBusca();
     const [focado, setFocado] = useState(false);
+    const filtrosLigados = useFiltros(contarFiltros);
 
     return (
         <View style={styles.container}>
@@ -37,23 +44,35 @@ export function BarraBusca() {
                     </Pressable>
                 )}
             </View>
-            <View style={styles.atalhos}>
-                {ATALHOS.map((a) => {
-                    const ativo = termo.trim().toLowerCase() === a.toLowerCase();
-                    return (
-                        <Pressable
-                            key={a}
-                            onPress={() => setTermo(ativo ? "" : a)}
-                            style={[styles.atalho, ativo && styles.atalhoAtivo]}
-                            accessibilityRole="button"
-                            accessibilityState={{ selected: ativo }}
-                        >
-                            <Texto variante="corpo" negrito style={{ color: ativo ? cor.papel : cor.marca }}>
-                                {a}
-                            </Texto>
-                        </Pressable>
-                    );
-                })}
+            <View style={styles.linha}>
+                <View style={styles.atalhos}>
+                    {ATALHOS.map((a) => {
+                        const ativo = termo.trim().toLowerCase() === a.toLowerCase();
+                        return (
+                            <Pressable
+                                key={a}
+                                onPress={() => setTermo(ativo ? "" : a)}
+                                style={[styles.atalho, ativo && styles.atalhoAtivo]}
+                                accessibilityRole="button"
+                                accessibilityState={{ selected: ativo }}
+                            >
+                                <Texto variante="corpo" negrito style={{ color: ativo ? cor.papel : cor.marca }}>
+                                    {a}
+                                </Texto>
+                            </Pressable>
+                        );
+                    })}
+                </View>
+                <Pressable
+                    onPress={onAbrirFiltros}
+                    style={[styles.atalho, filtrosLigados > 0 && styles.atalhoAtivo]}
+                    accessibilityRole="button"
+                    accessibilityLabel={filtrosLigados > 0 ? `Filtros, ${filtrosLigados} ligados` : "Filtros"}
+                >
+                    <Texto variante="corpo" negrito style={{ color: filtrosLigados > 0 ? cor.papel : cor.marca }}>
+                        {filtrosLigados > 0 ? `Filtros (${filtrosLigados})` : "Filtros"}
+                    </Texto>
+                </Pressable>
             </View>
         </View>
     );
@@ -76,7 +95,9 @@ const styles = StyleSheet.create({
     campoFocado: { borderColor: cor.marca, backgroundColor: cor.papel },
     entrada: { flex: 1, paddingVertical: espaco.m, fontFamily: fonte.regular, fontSize: tamanho.destaque, color: cor.tinta },
     limpar: { color: cor.marca },
-    atalhos: { flexDirection: "row", gap: espaco.s },
+    linha: { flexDirection: "row", alignItems: "flex-start", gap: espaco.s },
+    // Em celular estreito os atalhos quebram linha; o botão Filtros fica sempre à direita
+    atalhos: { flex: 1, flexDirection: "row", flexWrap: "wrap", gap: espaco.s },
     atalho: {
         paddingHorizontal: espaco.l,
         paddingVertical: espaco.s,

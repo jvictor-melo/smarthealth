@@ -15,6 +15,7 @@ function unidade(codigo_cnes: number, nome: string, tipo: number): Unidade {
         atende_sus: true,
         possui_centro_obstetrico: null,
         possui_centro_cirurgico: null,
+        rede: "publica",
         verificada: false,
         ativo: true,
         data_atualizacao_cnes: null,

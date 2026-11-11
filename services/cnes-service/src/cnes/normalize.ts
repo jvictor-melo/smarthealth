@@ -17,6 +17,7 @@ export interface UnidadeCnes {
     atendeSus: boolean;
     possuiCentroObstetrico: boolean | null;
     possuiCentroCirurgico: boolean | null;
+    naturezaJuridica: string | null;
     dataAtualizacaoCnes: string | null;
 }
 
@@ -68,6 +69,12 @@ export function flag(value: unknown): boolean | null {
     return Number(value) === 1;
 }
 
+/** Código de natureza jurídica com 4 dígitos ("1155"); qualquer outra coisa vira null. */
+export function naturezaJuridica(value: unknown): string | null {
+    const raw = digitos(value);
+    return raw !== null && raw.length === 4 ? raw : null;
+}
+
 export function dataIso(value: unknown): string | null {
     const raw = texto(value);
     return raw !== null && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
@@ -114,6 +121,7 @@ export function normalizarEstabelecimento(cru: EstabelecimentoCru): ResultadoNor
             atendeSus: simNao(cru.estabelecimento_faz_atendimento_ambulatorial_sus),
             possuiCentroObstetrico: flag(cru.estabelecimento_possui_centro_obstetrico),
             possuiCentroCirurgico: flag(cru.estabelecimento_possui_centro_cirurgico),
+            naturezaJuridica: naturezaJuridica(cru.descricao_natureza_juridica_estabelecimento),
             dataAtualizacaoCnes: dataIso(cru.data_atualizacao),
         },
     };

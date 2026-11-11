@@ -23,6 +23,7 @@ export const COLUNAS_SYNC = [
     "atendeSus",
     "possuiCentroObstetrico",
     "possuiCentroCirurgico",
+    "naturezaJuridica",
     "dataAtualizacaoCnes",
     "ativo",
     "verificada",

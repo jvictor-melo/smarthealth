@@ -1,5 +1,7 @@
 // Espelho do contrato do cnes-service (services/cnes-service/src/docs/openapi.ts), via api-gateway.
 
+export type Rede = "publica" | "privada" | "filantropica";
+
 export interface Unidade {
     codigo_cnes: number;
     nome: string;
@@ -12,6 +14,8 @@ export interface Unidade {
     atende_sus: boolean;
     possui_centro_obstetrico: boolean | null;
     possui_centro_cirurgico: boolean | null;
+    /** Pela natureza jurídica do CNES; null quando o código não é de nenhum dos três grupos */
+    rede: Rede | null;
     verificada: boolean;
     ativo: boolean;
     data_atualizacao_cnes: string | null;

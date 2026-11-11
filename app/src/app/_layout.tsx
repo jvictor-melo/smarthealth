@@ -17,7 +17,8 @@ const persistOptions = {
     persister,
     maxAge: UMA_SEMANA_MS,
     // Mude quando o formato da resposta da API mudar: o cache antigo é descartado
-    buster: "v1",
+    // v2: a API passou a mandar o campo "rede"
+    buster: "v2",
 };
 
 export default function RootLayout() {

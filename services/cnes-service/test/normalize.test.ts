@@ -39,8 +39,16 @@ describe("normalizarEstabelecimento", () => {
             atendeSus: true,
             possuiCentroObstetrico: false,
             possuiCentroCirurgico: false,
+            naturezaJuridica: "1155",
             dataAtualizacaoCnes: "2025-09-03",
         });
+    });
+
+    it("guarda só códigos de natureza jurídica com 4 dígitos", () => {
+        expect(normalizarOk({ ...upa, descricao_natureza_juridica_estabelecimento: 2062 }).naturezaJuridica).toBe("2062");
+        expect(normalizarOk({ ...upa, descricao_natureza_juridica_estabelecimento: "" }).naturezaJuridica).toBeNull();
+        expect(normalizarOk({ ...upa, descricao_natureza_juridica_estabelecimento: "12" }).naturezaJuridica).toBeNull();
+        expect(normalizarOk({ ...upa, descricao_natureza_juridica_estabelecimento: null }).naturezaJuridica).toBeNull();
     });
 
     it("usa nome_razao_social quando nome_fantasia vem vazio ou nulo", () => {

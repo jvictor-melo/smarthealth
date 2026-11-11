@@ -1,0 +1,387 @@
+{
+  "id": "bb52b31a-c6af-49f6-be8e-446fee26b6b0",
+  "prevId": "a9651da1-a582-4740-a564-b939ec2f568b",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.sync_execucoes": {
+      "name": "sync_execucoes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "modo": {
+          "name": "modo",
+          "type": "sync_modo",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "sync_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'running'"
+        },
+        "iniciado_em": {
+          "name": "iniciado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "finalizado_em": {
+          "name": "finalizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qtd_recebidas": {
+          "name": "qtd_recebidas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qtd_upserts": {
+          "name": "qtd_upserts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qtd_inativadas": {
+          "name": "qtd_inativadas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "erro": {
+          "name": "erro",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "sync_execucoes_status_idx": {
+          "name": "sync_execucoes_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "iniciado_em",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "sync_finalizado_check": {
+          "name": "sync_finalizado_check",
+          "value": "\"sync_execucoes\".\"status\" = 'running' OR \"sync_execucoes\".\"finalizado_em\" IS NOT NULL"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.tipos_unidade": {
+      "name": "tipos_unidade",
+      "schema": "",
+      "columns": {
+        "codigo": {
+          "name": "codigo",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.unidades": {
+      "name": "unidades",
+      "schema": "",
+      "columns": {
+        "codigo_cnes": {
+          "name": "codigo_cnes",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "razao_social": {
+          "name": "razao_social",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "logradouro": {
+          "name": "logradouro",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "numero": {
+          "name": "numero",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bairro": {
+          "name": "bairro",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cep": {
+          "name": "cep",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "telefone": {
+          "name": "telefone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "localizacao": {
+          "name": "localizacao",
+          "type": "geography(Point, 4326)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "codigo_tipo_unidade": {
+          "name": "codigo_tipo_unidade",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "turno_atendimento": {
+          "name": "turno_atendimento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "atende_sus": {
+          "name": "atende_sus",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "possui_centro_obstetrico": {
+          "name": "possui_centro_obstetrico",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "possui_centro_cirurgico": {
+          "name": "possui_centro_cirurgico",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "natureza_juridica": {
+          "name": "natureza_juridica",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_atualizacao_cnes": {
+          "name": "data_atualizacao_cnes",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "verificada": {
+          "name": "verificada",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "sincronizado_em": {
+          "name": "sincronizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "horarios": {
+          "name": "horarios",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "servicos": {
+          "name": "servicos",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "observacoes": {
+          "name": "observacoes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "manual_atualizado_em": {
+          "name": "manual_atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "unidades_localizacao_idx": {
+          "name": "unidades_localizacao_idx",
+          "columns": [
+            {
+              "expression": "localizacao",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gist",
+          "with": {}
+        },
+        "unidades_tipo_idx": {
+          "name": "unidades_tipo_idx",
+          "columns": [
+            {
+              "expression": "codigo_tipo_unidade",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "unidades_ativo_idx": {
+          "name": "unidades_ativo_idx",
+          "columns": [
+            {
+              "expression": "ativo",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "unidades_codigo_tipo_unidade_tipos_unidade_codigo_fk": {
+          "name": "unidades_codigo_tipo_unidade_tipos_unidade_codigo_fk",
+          "tableFrom": "unidades",
+          "tableTo": "tipos_unidade",
+          "columnsFrom": [
+            "codigo_tipo_unidade"
+          ],
+          "columnsTo": [
+            "codigo"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.sync_modo": {
+      "name": "sync_modo",
+      "schema": "public",
+      "values": [
+        "full",
+        "incremental"
+      ]
+    },
+    "public.sync_status": {
+      "name": "sync_status",
+      "schema": "public",
+      "values": [
+        "running",
+        "success",
+        "failed"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

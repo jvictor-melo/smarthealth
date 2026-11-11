@@ -15,6 +15,13 @@
       "when": 1793407505800,
       "tag": "0001_schema_inicial",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794333827855,
+      "tag": "0002_natureza_juridica",
+      "breakpoints": true
     }
   ]
 }

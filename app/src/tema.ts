@@ -14,6 +14,8 @@ export const cor = {
     urgencia: "#C62828",
     hospital: "#3949AB",
     basica: "#2E7D4F",
+    /** Roxo puxado para o magenta, para não confundir com o índigo de hospital */
+    especialidades: "#8E24AA",
     outros: "#6B7A80",
     erroFundo: "#FDECEA",
     erroTexto: "#8B1A1A",

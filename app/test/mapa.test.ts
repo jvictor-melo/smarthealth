@@ -1,15 +1,27 @@
-import { corDoTipo } from "../src/mapa/cores";
 import { distanciaM, formatarDistancia } from "../src/mapa/distancia";
+import { corDoTipo, GRUPOS, grupoDoTipo } from "../src/mapa/grupos";
 import { itensVisiveis } from "../src/mapa/itensVisiveis";
 import { urlRota } from "../src/rota/abrirRota";
 import { cor } from "../src/tema";
 
-test("cor por tipo de unidade", () => {
+test("cada tipo do CNES cai no grupo certo", () => {
+    expect(grupoDoTipo(73)).toBe("urgencia");
+    expect(grupoDoTipo(20)).toBe("urgencia");
+    expect(grupoDoTipo(5)).toBe("hospital");
+    expect(grupoDoTipo(15)).toBe("hospital");
+    expect(grupoDoTipo(2)).toBe("basica");
+    expect(grupoDoTipo(4)).toBe("especialidades");
+    expect(grupoDoTipo(999)).toBeNull();
+});
+
+test("cor por tipo de unidade, com cinza só para tipo fora dos grupos", () => {
     expect(corDoTipo(73)).toBe(cor.urgencia);
-    expect(corDoTipo(20)).toBe(cor.urgencia);
-    expect(corDoTipo(5)).toBe(cor.hospital);
-    expect(corDoTipo(2)).toBe(cor.basica);
+    expect(corDoTipo(4)).toBe(cor.especialidades);
     expect(corDoTipo(999)).toBe(cor.outros);
+});
+
+test("cada grupo tem cor diferente", () => {
+    expect(new Set(GRUPOS.map((g) => g.cor)).size).toBe(GRUPOS.length);
 });
 
 test("itens da lista conforme a altura da tela", () => {
